@@ -1,0 +1,3 @@
+[test]
+# DOM APIs (DOMParser, XMLSerializer) for code that works on drawings.
+preload = ["./tests/setup.ts"]

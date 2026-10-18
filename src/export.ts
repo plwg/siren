@@ -1,4 +1,5 @@
 import { render } from 'pele/lazy';
+import { IconTracker, omitForFile } from './omitted';
 
 // Exports are for pasting into documents and slides, so they ignore the editor theme. They are
 // drawn again in fonts every document app has, with the chosen colors baked in. Pele never paints
@@ -86,15 +87,18 @@ export interface Exported {
 /** The diagram drawn again for a document: measured in the export fonts, colors baked in. */
 export function exportSvg(source: string, options: ExportOptions): Exported {
   // Not responsive, so the file has a fixed pixel size instead of stretching to its container.
-  // No links or images: an exported file travels without Siren's link check, and a remote image
-  // would load each time the document is opened.
-  const { svg, width, height } = render(source, {
+  // No links: an exported file travels without Siren's link check. Images and missing icons get
+  // the same placeholders as on screen, since a remote image would load each time it is opened.
+  const icons = new IconTracker();
+  const drawn = render(source, {
     fontFamily: FONT,
     fontFamilyMono: FONT_MONO,
     responsive: false,
     links: false,
-    images: false,
+    icons: icons.resolve,
   });
+  const { svg } = omitForFile(drawn.svg, icons.take());
+  const { width, height } = drawn;
   const colors = PALETTES[options.palette][options.mode];
   const values: Record<string, string> = { ...colors, font: FONT, 'font-mono': FONT_MONO, radius: '6px' };
   let out = svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (match, name: string) => {

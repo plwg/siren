@@ -269,6 +269,8 @@
   /* The header stays for its message line, which floats; everything else in it is hidden. */
   body.view header > :not(#status), body.view textarea, body.view footer { display: none; }
   body.view header { padding: 0; border: 0; }
+  /* A shared diagram sits in the middle of the page rather than its top-left corner. */
+  body.view #diagram { display: grid; place-items: center; }
   body.view main { grid-template-columns: 1fr; }
 
   /* On phones and view pages, messages float over the diagram, so errors and warnings stay

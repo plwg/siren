@@ -3,10 +3,10 @@ import pkg from '../package.json';
 import { ready } from './engine';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeDiagram, encodeDiagram } from './hash';
-import { countImages } from './images';
 import { initLayout } from './layout';
 import { guardLinks } from './links';
 import { exportOptions, initMenu } from './menu';
+import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
 import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
 
@@ -34,19 +34,18 @@ source.value = fromHash() ?? DEFAULT;
 
 await ready(source.value);
 
-// No images: a shared diagram could otherwise make every viewer's browser fetch a URL its author
-// chose, revealing who viewed it and when. The page's Content Security Policy blocks them too.
+// Images and icons Siren leaves out are swapped for placeholders before the drawing reaches the
+// page (see omitted.ts), and named in a warning.
+let omitted: Omitted = { images: 0, icons: [] };
+const icons = new IconTracker();
 const mounted = mount(diagram, source.value, {
-  images: false,
-  onRender: () => {
-    const images = countImages(source.value);
-    setStanding(
-      images
-        ? `${images === 1 ? 'This diagram has an image' : `This diagram has ${images} images`}. Siren doesn't show images, so a shared link can't track who views it.`
-        : null,
-      'warning',
-    );
+  icons: icons.resolve,
+  sanitize: (svg) => {
+    const result = omitForPage(svg, icons.take());
+    omitted = result.omitted;
+    return result.node;
   },
+  onRender: () => setStanding(describe(omitted), 'warning'),
   onError: (e) => setStanding(e instanceof Error ? e.message : String(e)),
 });
 
