@@ -19,11 +19,6 @@ Live at https://plwg.github.io/siren/
   </tr>
 </table>
 
-<p>
-  <img alt="Phone layout showing the Diagram tab" src="docs/screenshots/phone-diagram.png" width="200">
-  <img alt="Phone layout in Lighthouse with the menu open" src="docs/screenshots/phone-menu.png" width="200">
-</p>
-
 - Type Mermaid on the left; the diagram renders on the right.
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL hash, so a link always carries it.
