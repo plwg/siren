@@ -83,7 +83,20 @@ window.addEventListener('hashchange', () => {
     source.value = text;
     mounted.update(text);
   }
+  updateEditLink();
 });
+
+// On view pages, Edit in Siren opens the editor on the same diagram, in the viewer's own theme.
+// Embedded in another site, it opens in a new tab rather than inside the embed.
+const editLink = byId<HTMLAnchorElement>('edit-link');
+function updateEditLink(): void {
+  editLink.href = `${location.pathname}${location.hash}`;
+}
+updateEditLink();
+if (window.top !== window) {
+  editLink.target = '_blank';
+  editLink.rel = 'noopener';
+}
 
 // A view link carries an explicitly chosen theme, so an embedded diagram looks the way it was shared.
 const link = (asView: boolean): string => {

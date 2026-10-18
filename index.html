@@ -266,8 +266,55 @@
   .leave-actions { display: flex; justify-content: flex-end; gap: 8px; }
   .leave-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
-  body.view header, body.view textarea, body.view footer { display: none; }
+  /* The header stays for its message line, which floats; everything else in it is hidden. */
+  body.view header > :not(#status), body.view textarea, body.view footer { display: none; }
+  body.view header { padding: 0; border: 0; }
   body.view main { grid-template-columns: 1fr; }
+
+  /* On phones and view pages, messages float over the diagram, so errors and warnings stay
+     visible where the header is short or hidden. src/layout.ts sets the class. */
+  .floating-status #status {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    width: max-content;
+    padding: 8px 14px;
+    border: var(--stroke) solid var(--border);
+    border-radius: 999px;
+    background: var(--panel);
+    color: var(--fg);
+    font-size: 13px;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+    z-index: 5;
+  }
+  .floating-status #status[data-kind="warning"] { border-color: var(--warning); }
+  .floating-status #status[data-kind="error"] { border-color: var(--critical); }
+  .floating-status #status:empty { display: none; }
+  /* Above the Edit in Siren button. */
+  body.view #status { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+  /* View pages: one way back to the editor, clear of Pele's zoom controls at the top right. */
+  .edit-link { display: none; }
+  body.view .edit-link {
+    position: fixed;
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font: 500 13px/1 var(--font-ui);
+    color: var(--fg);
+    text-decoration: none;
+    background: var(--panel);
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+  }
+  body.view .edit-link:hover { border-color: var(--accent); color: var(--accent); }
+  .edit-link svg { width: 14px; height: 14px; }
 
   /* Phones: one row of header, then the code or the diagram at full height. */
   @media (max-width: 720px) {
@@ -284,26 +331,6 @@
     #menu .themes label { flex: 1; text-align: center; }
     #menu footer { padding: 0; border: 0; }
 
-    /* Messages float over the pane, so errors show while looking at the diagram. */
-    #status {
-      position: fixed;
-      left: 50%;
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%);
-      max-width: calc(100vw - 32px);
-      width: max-content;
-      padding: 8px 14px;
-      border: var(--stroke) solid var(--border);
-      border-radius: 999px;
-      background: var(--panel);
-      color: var(--fg);
-      font-size: 13px;
-      box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
-      z-index: 5;
-    }
-    #status[data-kind="warning"] { border-color: var(--warning); }
-    #status[data-kind="error"] { border-color: var(--critical); }
-    #status:empty { display: none; }
   }
 </style>
 </head>
@@ -374,6 +401,10 @@
   <textarea id="source" spellcheck="false" aria-label="Mermaid source"></textarea>
   <div id="diagram"></div>
 </main>
+<a id="edit-link" class="edit-link" href="./">
+  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  Edit in Siren
+</a>
 <footer>
   <span>Rendered by <a href="https://github.com/obsidianmd/pele">Pele</a> <span id="pele-version"></span></span>
   <!-- The Mermaid version Pele's syntax targets; update with Pele. -->

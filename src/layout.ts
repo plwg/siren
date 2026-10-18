@@ -13,7 +13,9 @@ export function initLayout(): void {
   const appearance = document.getElementById('menu-appearance') as HTMLElement;
   const about = document.getElementById('menu-about') as HTMLElement;
 
+  const view = document.body.classList.contains('view');
   const place = (): void => {
+    document.body.classList.toggle('floating-status', view || narrow.matches);
     if (narrow.matches) {
       appearance.append(themes);
       about.append(footer);
