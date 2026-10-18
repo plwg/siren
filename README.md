@@ -4,6 +4,24 @@ Render Mermaid diagrams in the browser with [Pele](https://github.com/obsidianmd
 
 Live at https://plwg.github.io/siren/
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/desktop-dark.png">
+  <img alt="Siren with Mermaid source on the left and the rendered flowchart on the right" src="docs/screenshots/desktop-light.png">
+</picture>
+
+<table>
+  <tr>
+    <td valign="top"><img alt="Lighthouse high-contrast theme" src="docs/screenshots/desktop-contrast.png" width="440"></td>
+    <td valign="top"><img alt="Phone layout showing the Diagram tab" src="docs/screenshots/phone-diagram.png" width="180"></td>
+    <td valign="top"><img alt="Phone layout with the share and export menu open" src="docs/screenshots/phone-menu.png" width="180"></td>
+  </tr>
+  <tr>
+    <td>Lighthouse, the high-contrast theme</td>
+    <td>Phone: Diagram tab</td>
+    <td>Phone: ☰ menu</td>
+  </tr>
+</table>
+
 - Type Mermaid on the left; the diagram renders on the right.
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL hash, so a link always carries it.
