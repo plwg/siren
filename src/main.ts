@@ -8,10 +8,14 @@ import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
 import pkg from '../package.json';
 
+// The last node links to Siren with no diagram in the URL, which opens this sample again: as close
+// to a quine as a link can get, since a URL can't contain an encoding of text that contains it.
 const DEFAULT = `flowchart LR
   A[Write Mermaid] --> B{Pele}
   B --> C[SVG]
-  C --> D[Share the link]`;
+  C --> D[Share the link]
+  click B href "https://github.com/obsidianmd/pele" "Pele on GitHub"
+  click D href "https://plwg.github.io/siren/" "Opens this diagram again"`;
 
 // The diagram lives in the URL hash as base64url-encoded UTF-8, so a link carries it anywhere.
 const encode = (text: string): string => {
