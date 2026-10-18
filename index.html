@@ -365,8 +365,11 @@
   /* The header stays for its message line, which floats; everything else in it is hidden. */
   body.view header > :not(#status), body.view .editor, body.view footer { display: none; }
   body.view header { padding: 0; border: 0; }
-  /* A shared diagram sits in the middle of the page rather than its top-left corner. */
-  body.view #diagram { display: grid; place-items: center; }
+  /* A shared diagram sits in the middle of the page rather than its top-left corner. Auto margins
+     center it only while it fits; a taller or wider one starts at the top left and scrolls, where
+     grid or flex centering would push its top out of reach. */
+  body.view #diagram { display: flex; }
+  body.view #diagram > svg { margin: auto; }
   body.view main { grid-template-columns: 1fr; }
 
   /* On phones and view pages, messages float over the diagram, so errors and warnings stay
@@ -424,7 +427,7 @@
     /* 16px keeps phones from zooming the page in when the editor is tapped. */
     .editor { font-size: 16px; }
     body[data-pane="diagram"] .editor, body[data-pane="code"] #diagram { display: none; }
-    body.view #diagram { display: block; }
+    body.view #diagram { display: flex; }
     #diagram { padding: 16px; }
 
     #menu .themes { display: flex; }
