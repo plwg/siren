@@ -181,8 +181,14 @@
     box-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
   }
   #menu:popover-open { display: grid; gap: 16px; }
+  /* Long on phones: the menu scrolls rather than running off the screen. */
+  #menu { max-height: calc(100dvh - var(--menu-top, 56px) - 16px); overflow-y: auto; overscroll-behavior: contain; }
   .menu-section { display: grid; gap: 10px; }
   .menu-section + .menu-section { border-top: var(--stroke) solid var(--border); padding-top: 16px; }
+  /* On wider screens the phone-only Appearance section is hidden, so Share opens the menu. */
+  @media (min-width: 721px) {
+    .narrow-only + .menu-section { border-top: 0; padding-top: 0; }
+  }
   .menu-section h2 { font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
   .menu-row { display: flex; gap: 6px; }
   .menu-row button { flex: 1; }
@@ -190,6 +196,35 @@
   .option { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .option > span { font-size: 13px; }
   .hint { margin: 0; font-size: 12px; color: var(--muted); }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  button.quiet { border: 0; background: none; padding: 2px 0; font-size: 12px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  button.quiet:hover { color: var(--accent); }
+  #template {
+    font: 500 13px/1 var(--font-ui);
+    color: var(--fg);
+    background: var(--panel);
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 8px;
+  }
+  .recent { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .recent:empty { display: none; }
+  .recent button {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 7px 8px;
+    border-color: transparent;
+    background: none;
+    text-align: left;
+    font-weight: 400;
+  }
+  .recent button:hover { background: var(--panel); border-color: var(--border); }
+  .recent button[aria-current="true"] { border-color: var(--accent); }
+  .recent span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent time { flex: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
   main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
   /* The editor: a textarea with transparent text over a highlighted copy with line numbers (see
@@ -458,6 +493,17 @@
         <button id="download-png" type="button">PNG</button>
       </div>
       <p class="hint">Exports ignore the editor theme. Clear suits documents; Solid suits slides.</p>
+    </section>
+    <section class="menu-section">
+      <div class="section-head">
+        <h2>Diagrams</h2>
+        <button id="recent-clear" class="quiet" type="button" hidden>Clear recent</button>
+      </div>
+      <select id="template" aria-label="Start from an example">
+        <option value="">Start from an example…</option>
+      </select>
+      <ol id="recent" class="recent" aria-label="Recent diagrams"></ol>
+      <p class="hint" id="recent-empty">Diagrams you edit appear here. They're kept only in this browser.</p>
     </section>
     <section class="menu-section narrow-only" id="menu-about"></section>
   </div>

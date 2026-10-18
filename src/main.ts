@@ -6,6 +6,7 @@ import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeDiagram, encodeDiagram } from './hash';
 import { initLayout } from './layout';
+import { initLibrary } from './library';
 import { guardLinks } from './links';
 import { exportOptions, initMenu } from './menu';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
@@ -71,8 +72,23 @@ const draw = async (text: string): Promise<void> => {
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
 void document.fonts.ready.then(() => mounted.refresh());
 
+// Recent diagrams: kept a moment after edits settle, if the diagram draws. Not on view pages.
+const viewing = document.body.classList.contains('view');
+const library = initLibrary(source, [DEFAULT], (message) => flash(message));
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+const saveSoon = (): void => {
+  if (viewing) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!mounted.error) library.saved(source.value);
+  }, 1000);
+};
+// A diagram that arrived in a link is kept too, so it can be found again.
+if (fromHash() !== null) saveSoon();
+
 let timer: ReturnType<typeof setTimeout> | undefined;
 source.addEventListener('input', () => {
+  saveSoon();
   clearTimeout(timer);
   timer = setTimeout(() => {
     void draw(source.value);
@@ -83,8 +99,10 @@ source.addEventListener('input', () => {
 window.addEventListener('hashchange', () => {
   const text = fromHash();
   if (text !== null && text !== source.value) {
+    library.arrived();
     source.value = text;
     editor.refresh();
+    saveSoon();
     void draw(text);
   }
   updateEditLink();

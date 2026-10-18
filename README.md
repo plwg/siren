@@ -21,7 +21,8 @@ Live at https://plwg.github.io/siren/
 
 - Type Mermaid on the left; the diagram renders on the right. The editor highlights syntax, numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
-- The diagram is saved in the URL hash, so a link always carries it.
+- The diagram is saved in the URL, compressed, so a link always carries it.
+- The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
 - Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:
   - **Copy link** opens the editor with the diagram; **Copy view link** shows only the diagram, in the theme you picked, with an **Edit in Siren** button to open it in the editor.
