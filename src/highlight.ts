@@ -2,36 +2,24 @@
 // type, keywords, arrows, quoted text and edge labels, comments) without parsing: unusual syntax
 // is left plain rather than colored wrongly. Output is one block per line, for line numbers.
 
-const KEYWORDS = [
-  // Shared and flowchart
+// Keywords that begin a statement, colored only at the start of a line, so that words like "and"
+// or "end" inside a label stay plain.
+const STATEMENTS = [
   'subgraph',
   'end',
   'click',
-  'href',
-  'call',
-  'callback',
   'style',
   'classDef',
   'class',
   'linkStyle',
   'direction',
-  'TB',
-  'TD',
-  'BT',
-  'RL',
-  'LR',
   'accTitle',
   'accDescr',
   'title',
-  // Sequence
   'participant',
   'actor',
-  'as',
   'note',
   'Note',
-  'over',
-  'left of',
-  'right of',
   'loop',
   'alt',
   'else',
@@ -45,7 +33,6 @@ const KEYWORDS = [
   'deactivate',
   'autonumber',
   'box',
-  // Gantt, timeline, state, git
   'section',
   'dateFormat',
   'axisFormat',
@@ -58,13 +45,19 @@ const KEYWORDS = [
   'merge',
 ];
 
+// Words that only appear within a statement, after its first word.
+const MODIFIERS = ['href', 'call', 'callback', 'over', 'left of', 'right of', 'TB', 'TD', 'BT', 'RL', 'LR'];
+
+const words = (list: string[]): string => list.map((k) => k.replace(' ', '\\s+')).join('|');
+
 const TOKENS = new RegExp(
   [
     '(?<comment>%%.*$)',
     '(?<string>"(?:[^"\\\\]|\\\\.)*"?)',
     '(?<label>\\|[^|\\n]*\\|)',
     '(?<arrow><?(?:-{2,}|={2,}|~{3,}|-\\.+-?|\\.-+)[->xo)]*>?|-+>>?|<<-+)',
-    `(?<keyword>\\b(?:${KEYWORDS.map((k) => k.replace(' ', '\\s+')).join('|')})\\b)`,
+    `(?<statement>(?<=^\\s*)(?:${words(STATEMENTS)})\\b)`,
+    `(?<keyword>\\b(?:${words(MODIFIERS)})\\b)`,
     '(?<punct>[[\\](){}@:;,])',
   ].join('|'),
   'g',
@@ -72,7 +65,9 @@ const TOKENS = new RegExp(
 
 const escapeHtml = (text: string): string => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const span = (kind: string, text: string): string => `<span class="tok-${kind}">${escapeHtml(text)}</span>`;
+// A statement keyword is a keyword that happened to start its line.
+const span = (kind: string, text: string): string =>
+  `<span class="tok-${kind === 'statement' ? 'keyword' : kind}">${escapeHtml(text)}</span>`;
 
 function highlightLine(line: string): string {
   let out = '';

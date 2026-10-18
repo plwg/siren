@@ -26,6 +26,13 @@ describe('highlight', () => {
     expect(tokens(html, 'keyword')).toEqual(expect.arrayContaining(['LR', 'click', 'href']));
   });
 
+  test('keywords inside labels stay plain', () => {
+    const flow = highlight('flowchart TD\n  fix[Fix and push again] --> done[The end]');
+    expect(tokens(flow, 'keyword')).toEqual(['TD']);
+    const seq = highlight('sequenceDiagram\n  par Alice to Bob\n    A->>B: loop and end\n  and Alice to Carol\n  end');
+    expect(tokens(seq, 'keyword')).toEqual(['par', 'and', 'end']);
+  });
+
   test('sequence arrows', () => {
     expect(tokens(highlight('sequenceDiagram\n  A->>B: hi\n  B-->>A: ok'), 'arrow')).toEqual(['->>', '-->>']);
   });
