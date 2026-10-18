@@ -19,7 +19,7 @@ Live at https://plwg.github.io/siren/
   </tr>
 </table>
 
-- Type Mermaid on the left; the diagram renders on the right.
+- Type Mermaid on the left; the diagram renders on the right. The editor highlights syntax, numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL hash, so a link always carries it.
 - Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.

@@ -1,6 +1,8 @@
 import { mount } from 'pele/lazy';
 import pkg from '../package.json';
+import { initEditor } from './editor';
 import { ready } from './engine';
+import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeDiagram, encodeDiagram } from './hash';
 import { initLayout } from './layout';
@@ -31,6 +33,7 @@ const menu = initMenu();
 const source = byId<HTMLTextAreaElement>('source');
 const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
+const editor = initEditor(source, byId('code'));
 
 await ready(source.value);
 
@@ -45,8 +48,14 @@ const mounted = mount(diagram, source.value, {
     omitted = result.omitted;
     return result.node;
   },
-  onRender: () => setStanding(describe(omitted), 'warning'),
-  onError: (e) => setStanding(e instanceof Error ? e.message : String(e)),
+  onRender: () => {
+    editor.setErrorLine(null);
+    setStanding(describe(omitted), 'warning');
+  },
+  onError: (e) => {
+    editor.setErrorLine(errorLine(source.value, e));
+    setStanding(e instanceof Error ? e.message : String(e));
+  },
 });
 
 guardLinks(diagram);
@@ -75,6 +84,7 @@ window.addEventListener('hashchange', () => {
   const text = fromHash();
   if (text !== null && text !== source.value) {
     source.value = text;
+    editor.refresh();
     void draw(text);
   }
   updateEditLink();

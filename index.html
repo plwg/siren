@@ -48,6 +48,10 @@
     --warning: #8a5a00;
     --focus: #0a6c73;
     --stroke: 1px;
+    --code-keyword: #0a6c73;
+    --code-string: #8a4a13;
+    --code-quiet: #5d716f;
+    --code-error: color-mix(in srgb, #b3261e 13%, transparent);
 
     --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -70,6 +74,10 @@
     --critical: #f28b82;
     --warning: #e3b55c;
     --focus: #5ec2c3;
+    --code-keyword: #5ec2c3;
+    --code-string: #e6c07b;
+    --code-quiet: #8fa2a0;
+    --code-error: color-mix(in srgb, #f28b82 18%, transparent);
     color-scheme: dark;
   }
   :root[data-theme="contrast"] {
@@ -88,6 +96,10 @@
     --warning: #ffb347;
     --focus: #ffd60a;
     --stroke: 2px;
+    --code-keyword: #ffd60a;
+    --code-string: #7fdbff;
+    --code-quiet: #d9d9d9;
+    --code-error: color-mix(in srgb, #ff8a80 30%, transparent);
     color-scheme: dark;
   }
 
@@ -180,24 +192,73 @@
   .hint { margin: 0; font-size: 12px; color: var(--muted); }
 
   main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
-  textarea {
+  /* The editor: a textarea with transparent text over a highlighted copy with line numbers (see
+     src/editor.ts). Every rule that affects where text wraps applies to both layers alike. */
+  .editor {
+    --gutter: calc(var(--digits, 1) * 1ch + 28px);
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    border-right: var(--stroke) solid var(--border);
+    background: var(--panel);
+    font: 13px/1.6 var(--font-mono);
+  }
+  .editor > pre, .editor > textarea {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    resize: none;
+    margin: 0;
     border: 0;
-    border-right: var(--stroke) solid var(--border);
-    padding: 16px;
-    background: var(--panel);
-    color: var(--fg);
-    font: 13px/1.6 var(--font-mono);
+    padding: 16px 16px 16px var(--gutter);
+    font: inherit;
     font-variant-ligatures: none;
+    letter-spacing: 0;
     tab-size: 2;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    scrollbar-gutter: stable;
+  }
+  .editor > pre { overflow: hidden; color: var(--fg); pointer-events: none; counter-reset: line; }
+  .editor > textarea {
+    resize: none;
+    overflow: auto;
+    background: transparent;
+    color: transparent;
     caret-color: var(--accent);
   }
-  textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }
-  textarea::selection { background: var(--accent); color: var(--on-accent); }
+  .editor > textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }
+  .editor > textarea::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: transparent; }
+  /* Each line reaches back into the gutter, so its number and any error band sit with it. The
+     equal negative margin and padding leave the width text wraps in unchanged. */
+  .editor .line {
+    display: block;
+    position: relative;
+    counter-increment: line;
+    margin: 0 -16px 0 calc(-1 * var(--gutter));
+    padding: 0 16px 0 var(--gutter);
+  }
+  .editor .line::before {
+    content: counter(line);
+    position: absolute;
+    left: 0;
+    width: calc(var(--gutter) - 14px);
+    text-align: right;
+    color: var(--code-quiet);
+    opacity: 0.65;
+  }
+  .editor .line.error { background: var(--code-error); }
+  .editor .line.error::before { color: var(--critical); opacity: 1; font-weight: 500; }
+  .tok-type { color: var(--code-keyword); font-weight: 500; }
+  .tok-keyword { color: var(--code-keyword); }
+  .tok-string, .tok-label { color: var(--code-string); }
+  .tok-arrow { color: var(--code-quiet); font-weight: 500; }
+  .tok-punct { color: var(--code-quiet); }
+  .tok-comment { color: var(--code-quiet); font-style: italic; }
 
   #diagram {
+    /* Pele's error snippets quote the source; show `-->` as typed, not as a ligature. */
+    font-variant-ligatures: none;
     padding: 24px;
     overflow: auto;
     min-width: 0;
@@ -267,7 +328,7 @@
   .leave-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
   /* The header stays for its message line, which floats; everything else in it is hidden. */
-  body.view header > :not(#status), body.view textarea, body.view footer { display: none; }
+  body.view header > :not(#status), body.view .editor, body.view footer { display: none; }
   body.view header { padding: 0; border: 0; }
   /* A shared diagram sits in the middle of the page rather than its top-left corner. */
   body.view #diagram { display: grid; place-items: center; }
@@ -324,8 +385,10 @@
     .panes { display: inline-flex; }
     .narrow-only { display: grid; }
     main { grid-template-columns: 1fr; }
-    textarea { border-right: 0; }
-    body[data-pane="diagram"] textarea, body[data-pane="code"] #diagram { display: none; }
+    .editor { border-right: 0; }
+    /* 16px keeps phones from zooming the page in when the editor is tapped. */
+    .editor { font-size: 16px; }
+    body[data-pane="diagram"] .editor, body[data-pane="code"] #diagram { display: none; }
     body.view #diagram { display: block; }
     #diagram { padding: 16px; }
 
@@ -400,7 +463,10 @@
   </div>
 </header>
 <main>
-  <textarea id="source" spellcheck="false" aria-label="Mermaid source"></textarea>
+  <div class="editor">
+    <pre id="code" aria-hidden="true"></pre>
+    <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Mermaid source"></textarea>
+  </div>
   <div id="diagram"></div>
 </main>
 <a id="edit-link" class="edit-link" href="./">
