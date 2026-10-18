@@ -60,3 +60,7 @@ bun run build      # outputs to dist/
 ```
 
 Pushing to `main` builds and deploys to GitHub Pages via `.github/workflows/pages.yml`.
+
+## License
+
+[MIT](LICENSE). Pele, the fonts and other dependencies keep their own licenses.

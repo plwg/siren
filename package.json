@@ -2,6 +2,7 @@
   "name": "siren",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "bun ./index.html",
     "build": "bun build ./index.html --outdir dist --minify --splitting && bun scripts/check-csp.ts && bun scripts/check-versions.ts",
