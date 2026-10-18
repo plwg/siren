@@ -1,5 +1,6 @@
 import { mount } from 'pele';
-import { exportSvg } from './export';
+import { type Exported, exportSvg, svgToPng } from './export';
+import { exportOptions, initMenu } from './menu';
 import { initThemes, linkTheme } from './theme';
 import pkg from '../package.json';
 
@@ -31,6 +32,7 @@ const byId = <T extends HTMLElement>(id: string): T => document.getElementById(i
 
 if (new URLSearchParams(location.search).has('view')) document.body.classList.add('view');
 initThemes();
+const menu = initMenu();
 
 const source = byId<HTMLTextAreaElement>('source');
 const status = byId<HTMLSpanElement>('status');
@@ -87,19 +89,49 @@ const copy = async (text: string, label: string): Promise<void> => {
 
 byId('pele-version').textContent = pkg.dependencies.pele;
 
-byId('copy-link').addEventListener('click', () => copy(link(false), 'Link'));
-byId('copy-view').addEventListener('click', () => copy(link(true), 'View link'));
-byId('download').addEventListener('click', () => {
-  let svg: string;
+// Each menu action closes the menu and reports back in the header.
+const action = (id: string, run: () => unknown): void =>
+  byId(id).addEventListener('click', () => {
+    menu.close();
+    void run();
+  });
+
+// The diagram drawn for export, or null after telling the user why it can't be.
+const exported = (): Exported | null => {
   try {
-    svg = exportSvg(source.value);
+    return exportSvg(source.value, exportOptions());
   } catch {
-    say('Fix the diagram before downloading it.', true);
-    return;
+    say('Fix the diagram before exporting it.', true);
+    return null;
   }
+};
+
+const download = (blob: Blob, name: string): void => {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  a.download = 'diagram.svg';
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
+};
+
+action('copy-link', () => copy(link(false), 'Link'));
+action('copy-view', () => copy(link(true), 'View link'));
+action('download-svg', () => {
+  const result = exported();
+  if (result) download(new Blob([result.svg], { type: 'image/svg+xml' }), 'diagram.svg');
+});
+action('download-png', async () => {
+  const result = exported();
+  if (result) download(await svgToPng(result), 'diagram.png');
+});
+action('copy-image', async () => {
+  const result = exported();
+  if (!result) return;
+  try {
+    // The item is made inside the click, with the PNG still to come, as Safari requires.
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': svgToPng(result) })]);
+    say('Image copied');
+  } catch {
+    say("Couldn't copy the image here. Download a PNG instead.", true);
+  }
 });

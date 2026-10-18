@@ -103,12 +103,9 @@
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     border-bottom: var(--stroke) solid var(--border);
   }
-  .brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; min-width: 0; }
-  .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-  .brand span { color: var(--muted); font-size: 12px; }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin: 0 auto 0 0; }
   #status { font-size: 12px; color: var(--muted); }
   #status.error { color: var(--critical); }
-  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
   button {
     font: 500 13px/1 var(--font-ui);
@@ -121,8 +118,8 @@
   }
   button:hover { border-color: var(--accent); }
 
-  /* Theme switcher: a segmented control built on radio inputs, so arrow keys work. */
-  .themes {
+  /* Segmented controls are built on radio inputs, so arrow keys work. */
+  .segmented {
     display: inline-flex;
     padding: 2px;
     gap: 2px;
@@ -131,9 +128,9 @@
     background: var(--panel);
     margin: 0;
   }
-  .themes legend, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .themes input { position: absolute; opacity: 0; pointer-events: none; }
-  .themes label {
+  .segmented legend, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented label {
     font: 500 12px/1 var(--font-ui);
     letter-spacing: 0.02em;
     padding: 6px 9px;
@@ -141,9 +138,36 @@
     color: var(--muted);
     cursor: pointer;
   }
-  .themes label:hover { color: var(--fg); }
-  .themes input:checked + label { background: var(--accent); color: var(--on-accent); }
-  .themes input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .segmented label:hover { color: var(--fg); }
+  .segmented input:checked + label { background: var(--accent); color: var(--on-accent); }
+  .segmented input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .menu-button { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; }
+  .menu-button svg { width: 16px; height: 16px; }
+  .menu-button[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+
+  #menu {
+    position: fixed;
+    inset: var(--menu-top, 56px) max(16px, env(safe-area-inset-right, 0px)) auto auto;
+    margin: 0;
+    width: min(340px, calc(100vw - 32px));
+    padding: 16px;
+    background: var(--bg);
+    color: var(--fg);
+    border: var(--stroke) solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
+  }
+  #menu:popover-open { display: grid; gap: 16px; }
+  .menu-section { display: grid; gap: 10px; }
+  .menu-section + .menu-section { border-top: var(--stroke) solid var(--border); padding-top: 16px; }
+  .menu-section h2 { font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .menu-row { display: flex; gap: 6px; }
+  .menu-row button { flex: 1; }
+  .menu-row #copy-image { flex: 2; background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .option { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .option > span { font-size: 13px; }
+  .hint { margin: 0; font-size: 12px; color: var(--muted); }
 
   main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
   textarea {
@@ -203,28 +227,63 @@
   @media (max-width: 720px) {
     main { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
     textarea { border-right: 0; border-bottom: var(--stroke) solid var(--border); }
-    .brand span { display: none; }
+    header > .segmented { order: 3; flex-basis: 100%; }
+    header > .segmented label { flex: 1; text-align: center; }
   }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">
-    <h1>Siren</h1>
-    <span>Mermaid diagrams, rendered by Pele</span>
-  </div>
+  <h1>Siren</h1>
   <span id="status" role="status"></span>
-  <fieldset class="themes">
+  <fieldset class="segmented">
     <legend>Theme</legend>
     <input type="radio" name="theme" id="theme-auto" value="auto"><label for="theme-auto" title="Follow system setting">Auto</label>
     <input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light" title="Light">Shallows<span class="sr"> (light)</span></label>
     <input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark" title="Dark">Deep<span class="sr"> (dark)</span></label>
     <input type="radio" name="theme" id="theme-contrast" value="contrast"><label for="theme-contrast" title="High contrast">Lighthouse<span class="sr"> (high contrast)</span></label>
   </fieldset>
-  <div class="actions">
-    <button id="copy-link" type="button">Copy link</button>
-    <button id="copy-view" type="button">Copy view link</button>
-    <button id="download" type="button" title="Light colors on a transparent background, for documents">Download SVG</button>
+  <button id="menu-button" class="menu-button" type="button" popovertarget="menu" aria-expanded="false" aria-label="Share and export" title="Share and export">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <div id="menu" popover>
+    <section class="menu-section">
+      <h2>Share</h2>
+      <div class="menu-row">
+        <button id="copy-link" type="button">Copy link</button>
+        <button id="copy-view" type="button" title="Diagram only, in the theme you picked">Copy view link</button>
+      </div>
+    </section>
+    <section class="menu-section">
+      <h2>Export</h2>
+      <div class="option">
+        <span id="label-palette">Colors</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="label-palette">
+        <input type="radio" name="export-palette" id="export-palette-sea" value="sea"><label for="export-palette-sea">Sea</label>
+        <input type="radio" name="export-palette" id="export-palette-neutral" value="neutral"><label for="export-palette-neutral">Neutral</label>
+        </div>
+      </div>
+      <div class="option">
+        <span id="label-mode">Mode</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="label-mode">
+        <input type="radio" name="export-mode" id="export-mode-light" value="light"><label for="export-mode-light">Light</label>
+        <input type="radio" name="export-mode" id="export-mode-dark" value="dark"><label for="export-mode-dark">Dark</label>
+        </div>
+      </div>
+      <div class="option">
+        <span id="label-background">Background</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="label-background">
+        <input type="radio" name="export-background" id="export-background-clear" value="clear"><label for="export-background-clear">Clear</label>
+        <input type="radio" name="export-background" id="export-background-solid" value="solid"><label for="export-background-solid">Solid</label>
+        </div>
+      </div>
+      <div class="menu-row">
+        <button id="copy-image" type="button" title="Copies a PNG you can paste into documents">Copy image</button>
+        <button id="download-svg" type="button">SVG</button>
+        <button id="download-png" type="button">PNG</button>
+      </div>
+      <p class="hint">Exports ignore the editor theme. Clear suits documents; Solid suits slides.</p>
+    </section>
   </div>
 </header>
 <main>
