@@ -1,5 +1,7 @@
 import { mount } from 'pele';
+import { exportSvg } from './export';
 import { initThemes, linkTheme } from './theme';
+import pkg from '../package.json';
 
 const DEFAULT = `flowchart LR
   A[Write Mermaid] --> B{Pele}
@@ -83,23 +85,20 @@ const copy = async (text: string, label: string): Promise<void> => {
   }
 };
 
-// Pele's SVG reads colors and fonts from --pele-* variables with built-in fallbacks. Bake in the
-// current theme's values so the downloaded file looks like the screen, on its own background.
-const themedSvg = (svg: string): string => {
-  const style = getComputedStyle(diagram);
-  return svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (match, name: string) => {
-    const value = style.getPropertyValue(`--pele-${name}`).trim();
-    return value ? value.replace(/"/g, '&quot;') : match;
-  });
-};
+byId('pele-version').textContent = pkg.dependencies.pele;
 
 byId('copy-link').addEventListener('click', () => copy(link(false), 'Link'));
 byId('copy-view').addEventListener('click', () => copy(link(true), 'View link'));
 byId('download').addEventListener('click', () => {
-  const svg = mounted.result?.svg;
-  if (!svg) return;
+  let svg: string;
+  try {
+    svg = exportSvg(source.value);
+  } catch {
+    say('Fix the diagram before downloading it.', true);
+    return;
+  }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([themedSvg(svg)], { type: 'image/svg+xml' }));
+  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   a.download = 'diagram.svg';
   a.click();
   URL.revokeObjectURL(a.href);
