@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Siren</title>
+<meta name="description" content="Render Mermaid diagrams in the browser with Pele.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fffcf0; --fg: #100f0f; --muted: #6f6e69; --panel: #f2f0e5; --border: #cecdc3; --accent: #205ea6;
+    --pele-bg: transparent; --pele-fg: #100f0f; --pele-muted: #6f6e69; --pele-line: #100f0f;
+    --pele-surface: #f2f0e5; --pele-surface-alt: #e6e4d9; --pele-border: #cecdc3;
+    --pele-accent: #205ea6; --pele-critical: #af3029;
+    --pele-font: system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #100f0f; --fg: #cecdc3; --muted: #878580; --panel: #1c1b1a; --border: #403e3c; --accent: #4385be;
+      --pele-fg: #cecdc3; --pele-muted: #878580; --pele-line: #cecdc3;
+      --pele-surface: #1c1b1a; --pele-surface-alt: #282726; --pele-border: #403e3c;
+      --pele-accent: #4385be; --pele-critical: #d14d41;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 auto 0 0; }
+  button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
+  textarea { width: 100%; height: 100%; resize: none; border: 0; border-right: 1px solid var(--border); padding: 16px; background: var(--panel); color: var(--fg); font: 13px/1.5 ui-monospace, monospace; outline: none; tab-size: 2; }
+  #diagram { padding: 16px; overflow: auto; min-width: 0; }
+  #status { color: var(--muted); font-size: 12px; }
+  body.view header, body.view textarea { display: none; }
+  body.view main { grid-template-columns: 1fr; }
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
+    textarea { border-right: 0; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Siren</h1>
+  <span id="status"></span>
+  <button id="copy-link" type="button">Copy link</button>
+  <button id="copy-view" type="button">Copy view link</button>
+  <button id="download" type="button">Download SVG</button>
+</header>
+<main>
+  <textarea id="source" spellcheck="false" aria-label="Mermaid source"></textarea>
+  <div id="diagram"></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/pele@1.6.0/dist/pele.global.js"></script>
+<script>
+  const DEFAULT = `flowchart LR
+  A[Write Mermaid] --> B{Pele}
+  B --> C[SVG]
+  C --> D[Share the link]`;
+
+  // The diagram lives in the URL hash as base64url-encoded UTF-8, so a link carries it anywhere.
+  const encode = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  const decode = (s) => {
+    const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+    return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+  };
+
+  const params = new URLSearchParams(location.search);
+  const view = params.has('view');
+  if (view) document.body.classList.add('view');
+
+  const fromHash = () => {
+    try { return location.hash.length > 1 ? decode(location.hash.slice(1)) : null; } catch { return null; }
+  };
+
+  const source = document.getElementById('source');
+  const status = document.getElementById('status');
+  source.value = fromHash() ?? DEFAULT;
+
+  const mounted = pele.mount(document.getElementById('diagram'), source.value, {
+    onRender: () => { status.textContent = ''; },
+    onError: (e) => { status.textContent = e instanceof Error ? e.message : String(e); },
+  });
+
+  let timer;
+  source.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      mounted.update(source.value);
+      history.replaceState(null, '', location.pathname + location.search + '#' + encode(source.value));
+    }, 150);
+  });
+
+  window.addEventListener('hashchange', () => {
+    const text = fromHash();
+    if (text !== null && text !== source.value) { source.value = text; mounted.update(text); }
+  });
+
+  const link = (asView) => `${location.origin}${location.pathname}${asView ? '?view' : ''}#${encode(source.value)}`;
+  const copy = async (text, label) => {
+    await navigator.clipboard.writeText(text);
+    status.textContent = `${label} copied`;
+  };
+  document.getElementById('copy-link').onclick = () => copy(link(false), 'Link');
+  document.getElementById('copy-view').onclick = () => copy(link(true), 'View link');
+  document.getElementById('download').onclick = () => {
+    const svg = mounted.result?.svg;
+    if (!svg) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    a.download = 'diagram.svg';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+</script>
+</body>
+</html>
