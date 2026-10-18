@@ -149,9 +149,22 @@
   #menu { max-height: calc(100dvh - var(--menu-top, 56px) - 16px); overflow-y: auto; overscroll-behavior: contain; }
   .menu-section { display: grid; gap: 10px; }
   .menu-section + .menu-section { border-top: var(--stroke) solid var(--border); padding-top: 16px; }
-  /* On wider screens the phone-only Appearance section is hidden, so Share opens the menu. */
+  /* Wider screens: two columns, Share and Export beside Diagrams, so the menu fits without
+     scrolling. The phone-only sections are hidden here. */
   @media (min-width: 721px) {
-    .narrow-only + .menu-section { border-top: 0; padding-top: 0; }
+    #menu { width: min(700px, calc(100vw - 32px)); }
+    #menu:popover-open { grid-template-columns: 1fr 1fr; column-gap: 24px; align-items: start; }
+    #menu-share { grid-column: 1; grid-row: 1; border-top: 0; padding-top: 0; }
+    #menu-export { grid-column: 1; grid-row: 2; }
+    #menu-diagrams {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      border-top: 0;
+      padding-top: 0;
+      border-left: var(--stroke) solid var(--border);
+      padding-left: 24px;
+      margin-left: -12px;
+    }
   }
   .menu-section h2 { font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
   .menu-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -163,7 +176,7 @@
   .option > span { font-size: 13px; }
   .hint { margin: 0; font-size: 12px; color: var(--muted); }
   .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  button.quiet { border: 0; background: none; padding: 2px 0; font-size: 12px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  button.quiet { border: 0; background: none; padding: 0; font-size: 12px; line-height: 11px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
   button.quiet:hover { color: var(--accent); }
   #template {
     font: 500 13px/1 var(--font-ui);
@@ -460,7 +473,7 @@
     <section class="menu-section narrow-only" id="menu-appearance">
       <h2>Appearance</h2>
     </section>
-    <section class="menu-section">
+    <section class="menu-section" id="menu-share">
       <h2>Share</h2>
       <div class="menu-row">
         <button id="copy-link" type="button">Copy link</button>
@@ -468,7 +481,7 @@
         <button id="qr-open" type="button" title="Scan with a phone to open this diagram">QR code</button>
       </div>
     </section>
-    <section class="menu-section">
+    <section class="menu-section" id="menu-export">
       <h2>Export</h2>
       <div class="option">
         <span id="label-palette">Colors</span>
@@ -498,7 +511,7 @@
       </div>
       <p class="hint">Exports ignore the editor theme. Clear suits documents; Solid suits slides.</p>
     </section>
-    <section class="menu-section">
+    <section class="menu-section" id="menu-diagrams">
       <div class="section-head">
         <h2>Diagrams</h2>
         <button id="recent-clear" class="quiet" type="button" hidden>Clear recent</button>
