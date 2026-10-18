@@ -170,6 +170,43 @@ const download = (blob: Blob, name: string): void => {
 
 action('copy-link', () => copy(link(false), 'Link'));
 action('copy-view', () => copy(link(true), 'View link'));
+
+// A QR code of a share link, so a phone can open the diagram from the screen. The encoder loads
+// the first time the dialog opens.
+const qrDialog = byId<HTMLDialogElement>('qr');
+const qrBox = byId('qr-code');
+const qrNote = byId('qr-note');
+const qrDownload = byId<HTMLButtonElement>('qr-download');
+let qrShown: { svg: string; size: number } | null = null;
+const showQr = async (): Promise<void> => {
+  const view = (document.querySelector('input[name="qr-kind"]:checked') as HTMLInputElement).value === 'view';
+  const url = link(view);
+  const { qrCode } = await import('./qr');
+  const qr = qrCode(url);
+  qrShown = qr;
+  qrDownload.hidden = !qr;
+  if (!qr) {
+    qrBox.replaceChildren();
+    qrNote.textContent = `This link is ${url.length.toLocaleString()} characters, too long for a QR code. Use Copy link instead.`;
+    return;
+  }
+  // Markup made by qr.ts from the code's modules only.
+  qrBox.innerHTML = qr.svg;
+  const opens = view ? 'Opens the diagram on its own.' : 'Opens the diagram in the editor.';
+  qrNote.textContent = qr.size > 100 ? `${opens} It's a dense code: hold the phone close and steady.` : opens;
+};
+action('qr-open', async () => {
+  qrDialog.showModal();
+  await showQr();
+});
+for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="qr-kind"]')) {
+  radio.addEventListener('change', () => void showQr());
+}
+qrDownload.addEventListener('click', async () => {
+  if (!qrShown) return;
+  const side = qrShown.size * 8;
+  download(await svgToPng({ svg: qrShown.svg, width: side, height: side }, 1), 'siren-qr.png');
+});
 action('download-svg', async () => {
   const result = await exported();
   if (result) download(new Blob([result.svg], { type: 'image/svg+xml' }), 'diagram.svg');

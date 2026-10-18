@@ -184,8 +184,10 @@
     .narrow-only + .menu-section { border-top: 0; padding-top: 0; }
   }
   .menu-section h2 { font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
-  .menu-row { display: flex; gap: 6px; }
+  .menu-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .menu-row button { flex: 1; }
+  /* Its own row, so the two copy buttons keep their labels on one line. */
+  .menu-row #qr-open { flex-basis: 100%; }
   .menu-row #copy-image { flex: 2; background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .option { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .option > span { font-size: 13px; }
@@ -345,7 +347,8 @@
 
   .panes, .narrow-only { display: none; }
 
-  #leave {
+  /* Dialogs: the link check and the QR code. */
+  .dialog {
     width: min(420px, calc(100vw - 32px));
     padding: 20px;
     background: var(--bg);
@@ -354,11 +357,11 @@
     border-radius: 10px;
     box-shadow: 0 12px 32px rgb(0 0 0 / 0.25);
   }
-  #leave::backdrop { background: rgb(0 0 0 / 0.45); }
-  #leave form { display: grid; gap: 12px; }
-  #leave h2 { font-size: 16px; font-weight: 600; margin: 0; text-wrap: balance; }
-  #leave p { margin: 0; }
-  #leave strong { color: var(--accent); overflow-wrap: anywhere; }
+  .dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+  .dialog form { display: grid; gap: 12px; }
+  .dialog h2 { font-size: 16px; font-weight: 600; margin: 0; text-wrap: balance; }
+  .dialog p { margin: 0; }
+  .dialog strong { color: var(--accent); overflow-wrap: anywhere; }
   .leave-url {
     font: 12px/1.5 var(--font-mono);
     color: var(--muted);
@@ -368,8 +371,12 @@
     padding: 8px 10px;
     overflow-wrap: anywhere;
   }
-  .leave-actions { display: flex; justify-content: flex-end; gap: 8px; }
-  .leave-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .qr-code { display: grid; place-items: center; min-height: 120px; }
+  /* White card, whatever the theme: scanners need dark modules on light. */
+  .qr-code svg { width: min(100%, 280px); height: auto; border-radius: 4px; }
+  .qr-kind { justify-self: start; }
+  .dialog-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
   /* The header stays for its message line, which floats; everything else in it is hidden. */
   body.view header > :not(#status), body.view .editor, body.view .divider, body.view footer { display: none; }
@@ -474,6 +481,7 @@
       <div class="menu-row">
         <button id="copy-link" type="button">Copy link</button>
         <button id="copy-view" type="button" title="Diagram only, in the theme you picked">Copy view link</button>
+        <button id="qr-open" type="button" title="Scan with a phone to open this diagram">QR code</button>
       </div>
     </section>
     <section class="menu-section">
@@ -540,14 +548,29 @@
   <span>Made by <a href="https://github.com/plwg">plwg</a></span>
   <a href="https://github.com/plwg/siren">Source</a>
 </footer>
-<dialog id="leave" aria-labelledby="leave-title">
+<dialog id="leave" class="dialog" aria-labelledby="leave-title">
   <form method="dialog">
     <h2 id="leave-title">Open a link from this diagram?</h2>
     <p>It goes to <strong id="leave-host"></strong>. Whoever made the diagram chose this link.</p>
     <p class="leave-url" id="leave-url"></p>
-    <div class="leave-actions">
+    <div class="dialog-actions">
       <button value="cancel" autofocus>Cancel</button>
       <button value="open" class="primary">Open link</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="qr" class="dialog" aria-labelledby="qr-title">
+  <form method="dialog">
+    <h2 id="qr-title">Scan to open this diagram</h2>
+    <div class="segmented qr-kind" role="radiogroup" aria-label="Link to share">
+      <input type="radio" name="qr-kind" id="qr-kind-view" value="view" checked><label for="qr-kind-view">View only</label>
+      <input type="radio" name="qr-kind" id="qr-kind-edit" value="edit"><label for="qr-kind-edit">Editor</label>
+    </div>
+    <div class="qr-code" id="qr-code"></div>
+    <p class="hint" id="qr-note"></p>
+    <div class="dialog-actions">
+      <button type="button" id="qr-download">Download PNG</button>
+      <button value="close" class="primary" autofocus>Done</button>
     </div>
   </form>
 </dialog>
