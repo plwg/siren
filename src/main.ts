@@ -1,6 +1,7 @@
 import { mount } from 'pele';
 import pkg from '../package.json';
 import { type Exported, exportSvg, svgToPng } from './export';
+import { decodeDiagram, encodeDiagram } from './hash';
 import { countImages } from './images';
 import { initLayout } from './layout';
 import { guardLinks } from './links';
@@ -17,24 +18,7 @@ const DEFAULT = `flowchart LR
   click B href "https://github.com/obsidianmd/pele" "Pele on GitHub"
   click D href "https://plwg.github.io/siren/" "Opens this diagram again"`;
 
-// The diagram lives in the URL hash as base64url-encoded UTF-8, so a link carries it anywhere.
-const encode = (text: string): string => {
-  let bin = '';
-  for (const b of new TextEncoder().encode(text)) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-const decode = (s: string): string => {
-  const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
-  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-};
-
-const fromHash = (): string | null => {
-  try {
-    return location.hash.length > 1 ? decode(location.hash.slice(1)) : null;
-  } catch {
-    return null;
-  }
-};
+const fromHash = (): string | null => decodeDiagram(location.hash.slice(1));
 
 const byId = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
@@ -73,7 +57,7 @@ source.addEventListener('input', () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
     mounted.update(source.value);
-    history.replaceState(null, '', `${location.pathname}${location.search}#${encode(source.value)}`);
+    history.replaceState(null, '', `${location.pathname}${location.search}#${encodeDiagram(source.value)}`);
   }, 150);
 });
 
@@ -105,7 +89,7 @@ const link = (asView: boolean): string => {
   const theme = linkTheme();
   if (asView && theme) params.push(`theme=${theme}`);
   const query = params.length ? `?${params.join('&')}` : '';
-  return `${location.origin}${location.pathname}${query}#${encode(source.value)}`;
+  return `${location.origin}${location.pathname}${query}#${encodeDiagram(source.value)}`;
 };
 const copy = async (text: string, label: string): Promise<void> => {
   try {
