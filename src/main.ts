@@ -1,7 +1,7 @@
 import { mount } from 'pele/lazy';
 import pkg from '../package.json';
-import { type Exported, exportSvg, svgToPng } from './export';
 import { ready } from './engine';
+import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeDiagram, encodeDiagram } from './hash';
 import { countImages } from './images';
 import { initLayout } from './layout';
