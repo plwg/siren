@@ -2,12 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!--
+  Content Security Policy. Diagrams come from links anyone can craft, so even if a renderer bug let
+  markup through, only Siren's own scripts may run and nothing may load from other sites.
+  The hash allows the inline theme script below; `bun run build` fails if the two drift apart.
+  Styles allow inline because Pele draws with style attributes; fonts allow data: because the
+  bundler embeds the self-hosted fonts in the stylesheet.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-BiUXZogPJC8eIspqV+tF6h1nqc1D404dEFeRS8InZ3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Siren</title>
 <meta name="description" content="Render Mermaid diagrams in the browser with Pele.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./src/fonts.css">
 <script>
   // Resolve the theme before first paint so the page never flashes the wrong one.
   // A `?theme=` in the URL wins (for shared or embedded links), then the saved choice, then the system.
@@ -223,6 +229,32 @@
 
   .panes, .narrow-only { display: none; }
 
+  #leave {
+    width: min(420px, calc(100vw - 32px));
+    padding: 20px;
+    background: var(--bg);
+    color: var(--fg);
+    border: var(--stroke) solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.25);
+  }
+  #leave::backdrop { background: rgb(0 0 0 / 0.45); }
+  #leave form { display: grid; gap: 12px; }
+  #leave h2 { font-size: 16px; font-weight: 600; margin: 0; text-wrap: balance; }
+  #leave p { margin: 0; }
+  #leave strong { color: var(--accent); overflow-wrap: anywhere; }
+  .leave-url {
+    font: 12px/1.5 var(--font-mono);
+    color: var(--muted);
+    background: var(--panel);
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    overflow-wrap: anywhere;
+  }
+  .leave-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .leave-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
   body.view header, body.view textarea, body.view footer { display: none; }
   body.view main { grid-template-columns: 1fr; }
 
@@ -337,6 +369,17 @@
   <span>Made by <a href="https://github.com/plwg">plwg</a></span>
   <a href="https://github.com/plwg/siren">Source</a>
 </footer>
+<dialog id="leave" aria-labelledby="leave-title">
+  <form method="dialog">
+    <h2 id="leave-title">Open a link from this diagram?</h2>
+    <p>It goes to <strong id="leave-host"></strong>. Whoever made the diagram chose this link.</p>
+    <p class="leave-url" id="leave-url"></p>
+    <div class="leave-actions">
+      <button value="cancel" autofocus>Cancel</button>
+      <button value="open" class="primary">Open link</button>
+    </div>
+  </form>
+</dialog>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

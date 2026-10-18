@@ -28,6 +28,19 @@ Live at https://plwg.github.io/siren/
   - **Copy image** puts a PNG on the clipboard to paste into documents; **SVG** and **PNG** download files.
   - Exports ignore the editor theme. Choose **Sea** or **Neutral** colors, **Light** or **Dark**, and a **Clear** or **Solid** background. Text is set in Arial so it fits in any document app.
 
+## Security
+
+Anyone can craft a Siren link, so diagrams are treated as untrusted:
+
+- [Pele](https://pele.run/security) draws labels as text, drops `click` callbacks, and blocks `javascript:` and `data:` links.
+- A Content Security Policy lets only Siren's own scripts run and blocks loading anything from other sites. `bun run build` fails if the inline theme script and its hash in the policy drift apart; `bun scripts/check-csp.ts --write` updates the hash.
+- Diagram images are not loaded, so a shared link can't track who views it.
+- Diagram links ask before opening and show where they really go. Exports contain no links or images.
+- Fonts are self-hosted, so viewing Siren sends nothing to a font host. The diagram itself lives after the `#` in the URL and is never sent to any server.
+- GitHub Actions are pinned to commit hashes, and Dependabot proposes updates.
+
+Siren runs on `plwg.github.io`, which it shares with any other GitHub Pages sites under that account. It stores only theme and export preferences.
+
 ## Develop
 
 Requires [Bun](https://bun.sh).

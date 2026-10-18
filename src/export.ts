@@ -83,7 +83,15 @@ export interface Exported {
 /** The diagram drawn again for a document: measured in the export fonts, colors baked in. */
 export function exportSvg(source: string, options: ExportOptions): Exported {
   // Not responsive, so the file has a fixed pixel size instead of stretching to its container.
-  const { svg, width, height } = render(source, { fontFamily: FONT, fontFamilyMono: FONT_MONO, responsive: false });
+  // No links or images: an exported file travels without Siren's link check, and a remote image
+  // would load each time the document is opened.
+  const { svg, width, height } = render(source, {
+    fontFamily: FONT,
+    fontFamilyMono: FONT_MONO,
+    responsive: false,
+    links: false,
+    images: false,
+  });
   const colors = PALETTES[options.palette][options.mode];
   const values: Record<string, string> = { ...colors, font: FONT, 'font-mono': FONT_MONO, radius: '6px' };
   let out = svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (match, name: string) => {

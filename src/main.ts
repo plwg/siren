@@ -1,6 +1,7 @@
 import { mount } from 'pele';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { initLayout } from './layout';
+import { guardLinks } from './links';
 import { exportOptions, initMenu } from './menu';
 import { initThemes, linkTheme } from './theme';
 import pkg from '../package.json';
@@ -50,10 +51,15 @@ const say = (text: string, error = false): void => {
   if (text && !error) sayTimer = setTimeout(() => say(''), 3000);
 };
 
+// No images: a shared diagram could otherwise make every viewer's browser fetch a URL its author
+// chose, revealing who viewed it and when. The page's Content Security Policy blocks them too.
 const mounted = mount(diagram, source.value, {
+  images: false,
   onRender: () => say(''),
   onError: (e) => say(e instanceof Error ? e.message : String(e), true),
 });
+
+guardLinks(diagram);
 
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
 void document.fonts.ready.then(() => mounted.refresh());
