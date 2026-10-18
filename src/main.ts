@@ -2,7 +2,9 @@ import { mount } from 'pele';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { initLayout } from './layout';
 import { guardLinks } from './links';
+import { countImages } from './images';
 import { exportOptions, initMenu } from './menu';
+import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
 import pkg from '../package.json';
 
@@ -38,25 +40,23 @@ initLayout();
 const menu = initMenu();
 
 const source = byId<HTMLTextAreaElement>('source');
-const status = byId<HTMLSpanElement>('status');
 const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
-
-// Errors stay until the diagram draws; other messages clear themselves.
-let sayTimer: ReturnType<typeof setTimeout> | undefined;
-const say = (text: string, error = false): void => {
-  clearTimeout(sayTimer);
-  status.textContent = text;
-  status.classList.toggle('error', error);
-  if (text && !error) sayTimer = setTimeout(() => say(''), 3000);
-};
 
 // No images: a shared diagram could otherwise make every viewer's browser fetch a URL its author
 // chose, revealing who viewed it and when. The page's Content Security Policy blocks them too.
 const mounted = mount(diagram, source.value, {
   images: false,
-  onRender: () => say(''),
-  onError: (e) => say(e instanceof Error ? e.message : String(e), true),
+  onRender: () => {
+    const images = countImages(source.value);
+    setStanding(
+      images
+        ? `${images === 1 ? 'This diagram has an image' : `This diagram has ${images} images`}. Siren doesn't show images, so a shared link can't track who views it.`
+        : null,
+      'warning',
+    );
+  },
+  onError: (e) => setStanding(e instanceof Error ? e.message : String(e)),
 });
 
 guardLinks(diagram);
@@ -93,9 +93,9 @@ const link = (asView: boolean): string => {
 const copy = async (text: string, label: string): Promise<void> => {
   try {
     await navigator.clipboard.writeText(text);
-    say(`${label} copied`);
+    flash(`${label} copied`);
   } catch {
-    say(`Couldn't copy the ${label.toLowerCase()}. Copy it from the address bar instead.`, true);
+    flash(`Couldn't copy the ${label.toLowerCase()}. Copy it from the address bar instead.`, 'error');
   }
 };
 
@@ -113,7 +113,7 @@ const exported = (): Exported | null => {
   try {
     return exportSvg(source.value, exportOptions());
   } catch {
-    say('Fix the diagram before exporting it.', true);
+    flash('Fix the diagram before exporting it.', 'error');
     return null;
   }
 };
@@ -142,8 +142,8 @@ action('copy-image', async () => {
   try {
     // The item is made inside the click, with the PNG still to come, as Safari requires.
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': svgToPng(result) })]);
-    say('Image copied');
+    flash('Image copied');
   } catch {
-    say("Couldn't copy the image here. Download a PNG instead.", true);
+    flash("Couldn't copy the image here. Download a PNG instead.", 'error');
   }
 });
