@@ -10,6 +10,7 @@ import { initLibrary } from './library';
 import { guardLinks } from './links';
 import { exportOptions, initMenu } from './menu';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
+import { initSplit } from './split';
 import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
 
@@ -29,6 +30,7 @@ const byId = <T extends HTMLElement>(id: string): T => document.getElementById(i
 if (new URLSearchParams(location.search).has('view')) document.body.classList.add('view');
 initThemes();
 initLayout();
+initSplit();
 const menu = initMenu();
 
 const source = byId<HTMLTextAreaElement>('source');

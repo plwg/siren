@@ -226,7 +226,30 @@
   .recent span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .recent time { flex: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
+  /* src/split.ts sets --editor-size when the divider is moved. */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, var(--editor-size, 1fr)) auto minmax(0, 1.4fr);
+    min-height: 0;
+  }
+
+  /* The divider draws the line between the panes; its grab area is wider than the line. */
+  .divider {
+    position: relative;
+    z-index: 2;
+    width: var(--stroke);
+    background: var(--border);
+    cursor: col-resize;
+    touch-action: none;
+  }
+  .divider::before { content: ""; position: absolute; inset: 0 -5px; }
+  .divider:hover, .divider:focus-visible, .resizing .divider {
+    background: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+    outline: none;
+  }
+  .resizing { cursor: col-resize; user-select: none; }
   /* The editor: a textarea with transparent text over a highlighted copy with line numbers (see
      src/editor.ts). Every rule that affects where text wraps applies to both layers alike. */
   .editor {
@@ -234,7 +257,6 @@
     position: relative;
     min-width: 0;
     min-height: 0;
-    border-right: var(--stroke) solid var(--border);
     background: var(--panel);
     font: 13px/1.6 var(--font-mono);
   }
@@ -363,7 +385,7 @@
   .leave-actions .primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
   /* The header stays for its message line, which floats; everything else in it is hidden. */
-  body.view header > :not(#status), body.view .editor, body.view footer { display: none; }
+  body.view header > :not(#status), body.view .editor, body.view .divider, body.view footer { display: none; }
   body.view header { padding: 0; border: 0; }
   /* A shared diagram sits in the middle of the page rather than its top-left corner. Auto margins
      center it only while it fits; a taller or wider one starts at the top left and scrolls, where
@@ -423,7 +445,7 @@
     .panes { display: inline-flex; }
     .narrow-only { display: grid; }
     main { grid-template-columns: 1fr; }
-    .editor { border-right: 0; }
+    .divider { display: none; }
     /* 16px keeps phones from zooming the page in when the editor is tapped. */
     .editor { font-size: 16px; }
     body[data-pane="diagram"] .editor, body[data-pane="code"] #diagram { display: none; }
@@ -516,6 +538,8 @@
     <pre id="code" aria-hidden="true"></pre>
     <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Mermaid source"></textarea>
   </div>
+  <div id="divider" class="divider" role="separator" aria-orientation="vertical" aria-label="Resize the editor"
+    aria-valuemin="0" aria-valuemax="100" tabindex="0" title="Drag to resize. Double-click to reset."></div>
   <div id="diagram"></div>
 </main>
 <a id="edit-link" class="edit-link" href="./">

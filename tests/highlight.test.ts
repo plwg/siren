@@ -33,6 +33,24 @@ describe('highlight', () => {
     expect(tokens(seq, 'keyword')).toEqual(['par', 'and', 'end']);
   });
 
+  test('mid-line keywords need their statement', () => {
+    expect(tokens(highlight('flowchart TD\n  C[Whisk sugar over heat, LR style] --> D'), 'keyword')).toEqual(['TD']);
+    const seq = highlight('sequenceDiagram\n  Note over A,B: hover over\n  note left of A: x');
+    expect(tokens(seq, 'keyword')).toEqual(['Note', 'over', 'note', 'left of']);
+    expect(tokens(highlight('flowchart LR\n  click A href "x"\n  A[href]'), 'keyword')).toEqual([
+      'LR',
+      'click',
+      'href',
+    ]);
+    expect(tokens(highlight('flowchart LR\n  subgraph S\n    direction TB\n  end'), 'keyword')).toEqual([
+      'LR',
+      'subgraph',
+      'direction',
+      'TB',
+      'end',
+    ]);
+  });
+
   test('sequence arrows', () => {
     expect(tokens(highlight('sequenceDiagram\n  A->>B: hi\n  B-->>A: ok'), 'arrow')).toEqual(['->>', '-->>']);
   });

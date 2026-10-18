@@ -20,6 +20,7 @@ Live at https://plwg.github.io/siren/
 </table>
 
 - Type Mermaid on the left; the diagram renders on the right. The editor highlights syntax, numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
+- On wider screens, drag the divider between the editor and the diagram to resize them (arrow keys work when it's focused; double-click resets).
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL, compressed, so a link always carries it.
 - The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
