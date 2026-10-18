@@ -38,13 +38,32 @@ const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
 const editor = initEditor(source, byId('code'));
 
-await ready(source.value);
+// An empty editor isn't an error: the diagram pane says how to start instead. Pele always draws
+// something, so while the editor is empty it draws a blank flowchart that stays hidden.
+const BLANK = 'flowchart LR';
+const isBlank = (text: string): boolean => text.trim() === '';
+if (document.body.classList.contains('view')) {
+  diagram.dataset.empty = 'This link has no diagram.';
+  diagram.dataset.emptyNarrow = diagram.dataset.empty;
+} else {
+  diagram.dataset.empty = 'Type Mermaid on the left, or start from an example in the ☰ menu.';
+  diagram.dataset.emptyNarrow = 'Type Mermaid in the Code tab, or start from an example in the ☰ menu.';
+}
+const showBlank = (blank: boolean): void => {
+  diagram.classList.toggle('blank', blank);
+  if (blank) {
+    editor.setErrorLine(null);
+    setStanding(null);
+  }
+};
+
+await ready(isBlank(source.value) ? BLANK : source.value);
 
 // Images and icons Siren leaves out are swapped for placeholders before the drawing reaches the
 // page (see omitted.ts), and named in a warning.
 let omitted: Omitted = { images: 0, icons: [] };
 const icons = new IconTracker();
-const mounted = mount(diagram, source.value, {
+const mounted = mount(diagram, isBlank(source.value) ? BLANK : source.value, {
   icons: icons.resolve,
   sanitize: (svg) => {
     const result = omitForPage(svg, icons.take());
@@ -67,9 +86,16 @@ guardLinks(diagram);
 let drawing = 0;
 const draw = async (text: string): Promise<void> => {
   const turn = ++drawing;
+  if (isBlank(text)) {
+    showBlank(true);
+    return;
+  }
   await ready(text);
-  if (turn === drawing) mounted.update(text);
+  if (turn !== drawing) return;
+  showBlank(false);
+  mounted.update(text);
 };
+showBlank(isBlank(source.value));
 
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
 void document.fonts.ready.then(() => mounted.refresh());
@@ -151,6 +177,10 @@ const action = (id: string, run: () => unknown): void =>
 
 // The diagram drawn for export, or null after telling the user why it can't be.
 const exported = async (): Promise<Exported | null> => {
+  if (isBlank(source.value)) {
+    flash('Nothing to export yet. Type a diagram first.', 'error');
+    return null;
+  }
   await ready(source.value);
   try {
     return exportSvg(source.value, exportOptions());

@@ -19,6 +19,7 @@ Live at https://plwg.github.io/siren/
   </tr>
 </table>
 
+- Click **Siren** in the header for a blank editor; Back returns to the previous diagram.
 - Type Mermaid on the left; the diagram renders on the right. The editor numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
 - On wider screens, drag the divider between the editor and the diagram to resize them (arrow keys work when it's focused; double-click resets).
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.

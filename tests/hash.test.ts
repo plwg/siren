@@ -40,6 +40,11 @@ describe('links', () => {
     expect(decodeDiagram(old)).toBe(SAMPLE);
   });
 
+  test('an empty diagram has its own link, unlike no diagram at all', () => {
+    expect(encodeDiagram('')).toBe('d.AwA');
+    expect(decodeDiagram('d.AwA')).toBe('');
+  });
+
   test('empty and unreadable fragments give null', () => {
     expect(decodeDiagram('')).toBeNull();
     expect(decodeDiagram('d.!!!')).toBeNull();

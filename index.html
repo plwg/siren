@@ -119,6 +119,8 @@
     border-bottom: var(--stroke) solid var(--border);
   }
   header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin: 0 auto 0 0; }
+  header h1 a { color: inherit; text-decoration: none; border-radius: 4px; }
+  header h1 a:hover { color: var(--accent); }
   #status { font-size: 12px; color: var(--muted); }
   #status[data-kind="warning"] { color: var(--warning); }
   #status[data-kind="error"] { color: var(--critical); }
@@ -381,6 +383,17 @@
   /* The header stays for its message line, which floats; everything else in it is hidden. */
   body.view header > :not(#status), body.view .editor, body.view .divider, body.view footer { display: none; }
   body.view header { padding: 0; border: 0; }
+
+  /* An empty editor: the diagram pane says how to start (src/main.ts sets the words). */
+  #diagram.blank { display: grid; place-items: center; }
+  #diagram.blank > * { display: none; }
+  #diagram.blank::before {
+    content: attr(data-empty);
+    max-width: 30ch;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--muted);
+  }
   /* A shared diagram sits in the middle of the page rather than its top-left corner. Auto margins
      center it only while it fits; a taller or wider one starts at the top left and scrolls, where
      grid or flex centering would push its top out of reach. */
@@ -440,6 +453,7 @@
     .narrow-only { display: grid; }
     main { grid-template-columns: 1fr; }
     .divider { display: none; }
+    #diagram.blank::before { content: attr(data-empty-narrow); }
     /* 16px keeps phones from zooming the page in when the editor is tapped. */
     .editor { font-size: 16px; }
     body[data-pane="diagram"] .editor, body[data-pane="code"] #diagram { display: none; }
@@ -455,7 +469,9 @@
 </head>
 <body data-pane="diagram">
 <header>
-  <h1>Siren</h1>
+  <!-- The fragment is an empty diagram (see src/hash.ts), so this opens a blank editor; an address
+       with no fragment would open the sample instead. -->
+  <h1><a id="new-diagram" href="./#d.AwA" title="New blank diagram">Siren</a></h1>
   <span id="status" role="status"></span>
   <div class="segmented panes" role="radiogroup" aria-label="Show">
     <input type="radio" name="pane" id="pane-code" value="code"><label for="pane-code">Code</label>
@@ -531,7 +547,8 @@
 <main>
   <div class="editor">
     <pre id="code" aria-hidden="true"></pre>
-    <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Mermaid source"></textarea>
+    <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Mermaid source"
+      placeholder="Type Mermaid here, for example:&#10;&#10;flowchart LR&#10;  A[Idea] --> B[Diagram]"></textarea>
   </div>
   <div id="divider" class="divider" role="separator" aria-orientation="vertical" aria-label="Resize the editor"
     aria-valuemin="0" aria-valuemax="100" tabindex="0" title="Drag to resize. Double-click to reset."></div>
