@@ -1,7 +1,6 @@
-import { mount } from 'pele/lazy';
+import { mount } from 'pele';
 import pkg from '../package.json';
 import { initEditor } from './editor';
-import { ready } from './engine';
 import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeDiagram, encodeDiagram } from './hash';
@@ -10,6 +9,7 @@ import { initLibrary } from './library';
 import { guardLinks } from './links';
 import { exportOptions, initMenu } from './menu';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
+import { qrCode } from './qr';
 import { initSplit } from './split';
 import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
@@ -57,8 +57,6 @@ const showBlank = (blank: boolean): void => {
   }
 };
 
-await ready(isBlank(source.value) ? BLANK : source.value);
-
 // Images and icons Siren leaves out are swapped for placeholders before the drawing reaches the
 // page (see omitted.ts), and named in a warning.
 let omitted: Omitted = { images: 0, icons: [] };
@@ -82,18 +80,11 @@ const mounted = mount(diagram, isBlank(source.value) ? BLANK : source.value, {
 
 guardLinks(diagram);
 
-// Draws new text once its diagram type's code has loaded, skipping any text replaced meanwhile.
-let drawing = 0;
-const draw = async (text: string): Promise<void> => {
-  const turn = ++drawing;
-  if (isBlank(text)) {
-    showBlank(true);
-    return;
-  }
-  await ready(text);
-  if (turn !== drawing) return;
-  showBlank(false);
-  mounted.update(text);
+// Draws new text, or the empty state for blank text.
+const draw = (text: string): void => {
+  const blank = isBlank(text);
+  showBlank(blank);
+  if (!blank) mounted.update(text);
 };
 showBlank(isBlank(source.value));
 
@@ -119,7 +110,7 @@ source.addEventListener('input', () => {
   saveSoon();
   clearTimeout(timer);
   timer = setTimeout(() => {
-    void draw(source.value);
+    draw(source.value);
     history.replaceState(null, '', `${location.pathname}${location.search}#${encodeDiagram(source.value)}`);
   }, 150);
 });
@@ -131,7 +122,7 @@ window.addEventListener('hashchange', () => {
     source.value = text;
     editor.refresh();
     saveSoon();
-    void draw(text);
+    draw(text);
   }
   updateEditLink();
 });
@@ -181,7 +172,6 @@ const exported = async (): Promise<Exported | null> => {
     flash('Nothing to export yet. Type a diagram first.', 'error');
     return null;
   }
-  await ready(source.value);
   try {
     return exportSvg(source.value, exportOptions());
   } catch {
@@ -201,8 +191,7 @@ const download = (blob: Blob, name: string): void => {
 action('copy-link', () => copy(link(false), 'Link'));
 action('copy-view', () => copy(link(true), 'View link'));
 
-// A QR code of a share link, so a phone can open the diagram from the screen. The encoder loads
-// the first time the dialog opens.
+// A QR code of a share link, so a phone can open the diagram from the screen.
 const qrDialog = byId<HTMLDialogElement>('qr');
 const qrBox = byId('qr-code');
 const qrNote = byId('qr-note');
@@ -211,7 +200,6 @@ let qrShown: { svg: string; size: number } | null = null;
 const showQr = async (): Promise<void> => {
   const view = (document.querySelector('input[name="qr-kind"]:checked') as HTMLInputElement).value === 'view';
   const url = link(view);
-  const { qrCode } = await import('./qr');
   const qr = qrCode(url);
   qrShown = qr;
   qrDownload.hidden = !qr;

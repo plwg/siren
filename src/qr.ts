@@ -1,7 +1,6 @@
 import { encode } from 'uqr';
 
-// QR codes for share links. Loaded only when the QR dialog opens, so the encoder isn't part of the
-// page's first download.
+// QR codes for share links.
 
 export interface Qr {
   /** Black on white, with the standard four-module quiet zone, whatever the page theme. */

@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "bun ./index.html",
-    "build": "bun build ./index.html --outdir dist --minify --splitting && bun scripts/check-csp.ts && bun scripts/check-versions.ts",
+    "build": "bun build ./index.html --outdir dist --minify && bun scripts/check-csp.ts && bun scripts/check-versions.ts",
     "typecheck": "bun check",
     "lint": "biome ci .",
     "format": "biome check --write .",

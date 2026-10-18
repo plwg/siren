@@ -1,11 +1,9 @@
 import { expect, describe as group, test } from 'bun:test';
-import { render } from 'pele/lazy';
-import { ready } from '../src/engine';
+import { render } from 'pele';
 import { describe, IconTracker, omitForFile } from '../src/omitted';
 
 // Draws the text and passes the result on as Siren does, with the icon names Pele asked for.
 const omit = async (text: string) => {
-  await ready(text);
   const icons = new IconTracker();
   const { svg } = render(text, { icons: icons.resolve });
   return { drawn: svg, ...omitForFile(svg, icons.take()) };

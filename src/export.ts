@@ -1,4 +1,4 @@
-import { render } from 'pele/lazy';
+import { render } from 'pele';
 import { IconTracker, omitForFile } from './omitted';
 
 // Exports are for pasting into documents and slides, so they ignore the editor theme. They are

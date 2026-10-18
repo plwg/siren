@@ -1,10 +1,8 @@
 import { expect, test } from 'bun:test';
-import { render } from 'pele/lazy';
-import { ready } from '../src/engine';
+import { render } from 'pele';
 import { errorLine } from '../src/errorline';
 
 const lineOf = async (text: string): Promise<number | null> => {
-  await ready(text);
   try {
     render(text);
   } catch (error) {

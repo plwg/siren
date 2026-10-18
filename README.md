@@ -24,6 +24,7 @@ Live at https://plwg.github.io/siren/
 - On wider screens, drag the divider between the editor and the diagram to resize them (arrow keys work when it's focused; double-click resets).
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL, compressed, so a link always carries it.
+- Once the page has loaded, Siren needs no network: every diagram type, the QR code and exports are in the page, so it keeps working offline.
 - The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
 - Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:
