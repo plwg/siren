@@ -1,4 +1,4 @@
-import { render } from 'pele';
+import { render } from 'pele/lazy';
 
 // Exports are for pasting into documents and slides, so they ignore the editor theme. They are
 // drawn again in fonts every document app has, with the chosen colors baked in. Pele never paints

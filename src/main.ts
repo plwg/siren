@@ -1,6 +1,7 @@
-import { mount } from 'pele';
+import { mount } from 'pele/lazy';
 import pkg from '../package.json';
 import { type Exported, exportSvg, svgToPng } from './export';
+import { ready } from './engine';
 import { decodeDiagram, encodeDiagram } from './hash';
 import { countImages } from './images';
 import { initLayout } from './layout';
@@ -31,6 +32,8 @@ const source = byId<HTMLTextAreaElement>('source');
 const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
 
+await ready(source.value);
+
 // No images: a shared diagram could otherwise make every viewer's browser fetch a URL its author
 // chose, revealing who viewed it and when. The page's Content Security Policy blocks them too.
 const mounted = mount(diagram, source.value, {
@@ -49,6 +52,14 @@ const mounted = mount(diagram, source.value, {
 
 guardLinks(diagram);
 
+// Draws new text once its diagram type's code has loaded, skipping any text replaced meanwhile.
+let drawing = 0;
+const draw = async (text: string): Promise<void> => {
+  const turn = ++drawing;
+  await ready(text);
+  if (turn === drawing) mounted.update(text);
+};
+
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
 void document.fonts.ready.then(() => mounted.refresh());
 
@@ -56,7 +67,7 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 source.addEventListener('input', () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
-    mounted.update(source.value);
+    void draw(source.value);
     history.replaceState(null, '', `${location.pathname}${location.search}#${encodeDiagram(source.value)}`);
   }, 150);
 });
@@ -65,7 +76,7 @@ window.addEventListener('hashchange', () => {
   const text = fromHash();
   if (text !== null && text !== source.value) {
     source.value = text;
-    mounted.update(text);
+    void draw(text);
   }
   updateEditLink();
 });
@@ -110,7 +121,8 @@ const action = (id: string, run: () => unknown): void =>
   });
 
 // The diagram drawn for export, or null after telling the user why it can't be.
-const exported = (): Exported | null => {
+const exported = async (): Promise<Exported | null> => {
+  await ready(source.value);
   try {
     return exportSvg(source.value, exportOptions());
   } catch {
@@ -129,22 +141,28 @@ const download = (blob: Blob, name: string): void => {
 
 action('copy-link', () => copy(link(false), 'Link'));
 action('copy-view', () => copy(link(true), 'View link'));
-action('download-svg', () => {
-  const result = exported();
+action('download-svg', async () => {
+  const result = await exported();
   if (result) download(new Blob([result.svg], { type: 'image/svg+xml' }), 'diagram.svg');
 });
 action('download-png', async () => {
-  const result = exported();
+  const result = await exported();
   if (result) download(await svgToPng(result), 'diagram.png');
 });
 action('copy-image', async () => {
-  const result = exported();
-  if (!result) return;
+  // The clipboard item is made inside the click, with the PNG still to come: browsers allow the
+  // write only during the click, and drawing may first need to load the diagram type's code.
+  let unexportable = false;
+  const png = exported().then((result) => {
+    if (result) return svgToPng(result);
+    unexportable = true;
+    throw new Error('The diagram cannot be exported.');
+  });
   try {
-    // The item is made inside the click, with the PNG still to come, as Safari requires.
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': svgToPng(result) })]);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
     flash('Image copied');
   } catch {
-    flash("Couldn't copy the image here. Download a PNG instead.", 'error');
+    // An unexportable diagram has already said why.
+    if (!unexportable) flash("Couldn't copy the image here. Download a PNG instead.", 'error');
   }
 });

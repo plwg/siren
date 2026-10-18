@@ -1,4 +1,4 @@
-import { render } from 'pele';
+import { render } from 'pele/lazy';
 
 // Siren draws diagrams without images (see main.ts), which would otherwise drop them silently.
 // To say so, draw the text once more with images allowed, into a string that is never shown, and
