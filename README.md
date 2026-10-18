@@ -4,23 +4,25 @@ Render Mermaid diagrams in the browser with [Pele](https://github.com/obsidianmd
 
 Live at https://plwg.github.io/siren/
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/desktop-dark.png">
-  <img alt="Siren with Mermaid source on the left and the rendered flowchart on the right" src="docs/screenshots/desktop-light.png">
-</picture>
+<img alt="Siren in Lighthouse, the high-contrast theme: Mermaid source on the left, the rendered flowchart on the right" src="docs/screenshots/desktop-contrast.png">
+
+**Lighthouse**, the high-contrast theme: pure black and white with a single signal yellow, heavier strokes and strong focus rings. **Auto** picks it when your system asks for more contrast.
 
 <table>
   <tr>
-    <td valign="top"><img alt="Lighthouse high-contrast theme" src="docs/screenshots/desktop-contrast.png" width="440"></td>
-    <td valign="top"><img alt="Phone layout showing the Diagram tab" src="docs/screenshots/phone-diagram.png" width="180"></td>
-    <td valign="top"><img alt="Phone layout with the share and export menu open" src="docs/screenshots/phone-menu.png" width="180"></td>
+    <td valign="top"><img alt="Shallows light theme" src="docs/screenshots/desktop-light.png" width="400"></td>
+    <td valign="top"><img alt="Deep dark theme" src="docs/screenshots/desktop-dark.png" width="400"></td>
   </tr>
   <tr>
-    <td>Lighthouse, the high-contrast theme</td>
-    <td>Phone: Diagram tab</td>
-    <td>Phone: ☰ menu</td>
+    <td>Shallows (light)</td>
+    <td>Deep (dark)</td>
   </tr>
 </table>
+
+<p>
+  <img alt="Phone layout showing the Diagram tab" src="docs/screenshots/phone-diagram.png" width="200">
+  <img alt="Phone layout in Lighthouse with the menu open" src="docs/screenshots/phone-menu.png" width="200">
+</p>
 
 - Type Mermaid on the left; the diagram renders on the right.
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
