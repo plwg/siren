@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Siren</title>
+  <!-- Two diagram boxes joined by a wave: a link in a diagram, and the sea a siren sings from. -->
+  <rect width="32" height="32" rx="7" fill="#0a6c73"/>
+  <rect x="5" y="6.5" width="10" height="7.5" rx="2" fill="#fff"/>
+  <rect x="17" y="18" width="10" height="7.5" rx="2" fill="#fff"/>
+  <path d="M10 14c0 6 12 -2.5 12 4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

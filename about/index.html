@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--
+  Content Security Policy. Diagrams come from links anyone can craft, so even if a renderer bug let
+  markup through, only Siren's own scripts may run and nothing may load from other sites.
+  The hash allows the inline theme script below; `bun run build` fails if the two drift apart.
+  Styles allow inline because Pele draws with style attributes; fonts allow data: because the
+  bundler embeds the self-hosted fonts in the stylesheet.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-BiUXZogPJC8eIspqV+tF6h1nqc1D404dEFeRS8InZ3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Siren: a private, offline Mermaid editor</title>
+<meta name="description" content="Siren is a free Mermaid diagram editor and viewer that runs in your browser. Share diagrams by link or QR code, export SVG and PNG, and work offline. Diagrams never leave your device.">
+<link rel="canonical" href="https://plwg.github.io/siren/about/">
+<link rel="icon" href="../src/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../public/apple-touch-icon.png">
+<meta name="theme-color" content="#0a6c73">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Siren">
+<meta property="og:title" content="About Siren: a private, offline Mermaid editor">
+<meta property="og:description" content="Siren is a free Mermaid diagram editor and viewer that runs in your browser. Share diagrams by link or QR code, export SVG and PNG, and work offline. Diagrams never leave your device.">
+<meta property="og:url" content="https://plwg.github.io/siren/about/">
+<meta property="og:image" content="https://plwg.github.io/siren/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../src/fonts.css">
+<link rel="stylesheet" href="../src/tokens.css">
+<!-- The same theme script as the editor, so one CSP hash covers both pages. -->
+<script>
+  // Resolve the theme before first paint so the page never flashes the wrong one.
+  // A `?theme=` in the URL wins (for shared or embedded links), then the saved choice, then the system.
+  (() => {
+    const themes = ['light', 'dark', 'contrast'];
+    let choice = new URLSearchParams(location.search).get('theme');
+    if (!themes.includes(choice)) {
+      try { choice = localStorage.getItem('siren-theme'); } catch { choice = null; }
+    }
+    if (!themes.includes(choice)) {
+      choice = matchMedia('(prefers-contrast: more)').matches ? 'contrast'
+        : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.dataset.theme = choice;
+  })();
+</script>
+<style>
+  /* Layout: the editor's header bar, then one readable column of text. */
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 var(--font-ui);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    border-bottom: var(--stroke) solid var(--border);
+  }
+  .brand { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: inherit; text-decoration: none; }
+  .brand:hover { color: var(--accent); }
+  .open {
+    font: 500 14px/1 var(--font-ui);
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    text-decoration: none;
+  }
+  main {
+    max-width: 68ch;
+    margin: 0 auto;
+    padding-block: 40px 56px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    gap: 36px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.15; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .lede { font-size: 18px; color: var(--muted); margin: 12px 0 0; max-width: 56ch; }
+  section { display: grid; gap: 10px; }
+  h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  p, ul { margin: 0; }
+  ul { padding-left: 1.2em; display: grid; gap: 6px; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  code, kbd { font: 0.9em var(--font-mono); background: var(--panel); border: var(--stroke) solid var(--border); border-radius: 4px; padding: 0 4px; }
+  .types { columns: 3 12ch; column-gap: 24px; padding-left: 1.2em; display: block; }
+  .types li { break-inside: avoid; margin-bottom: 4px; }
+  footer {
+    border-top: var(--stroke) solid var(--border);
+    padding-block: 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="../">Siren</a>
+  <a class="open" href="../">Open the editor</a>
+</header>
+<main>
+  <div>
+    <h1>A Mermaid diagram editor that keeps your diagrams to yourself</h1>
+    <p class="lede">Type Mermaid on one side and see the diagram on the other. Share it as a link or a QR code, or paste it into a document as an image. Everything happens in your browser.</p>
+  </div>
+
+  <section>
+    <h2>What you can do</h2>
+    <ul>
+      <li><strong>Write and preview.</strong> The diagram redraws as you type. Line numbers and a marked error line show where a syntax error is.</li>
+      <li><strong>Share by link.</strong> The diagram is compressed into the link itself, so anyone with the link sees it. A view link shows only the diagram, in the theme you chose, with a button to open it in the editor.</li>
+      <li><strong>Share by QR code.</strong> Scan the code with a phone to open the diagram there, or download it as a PNG for slides and print.</li>
+      <li><strong>Put it in a document.</strong> Copy the diagram as an image, or download SVG or PNG, in light or dark colors with a clear or solid background. Exports use Arial, so text fits in any document app.</li>
+      <li><strong>Start quickly.</strong> Begin from an example for each common diagram type, or reopen one of your recent diagrams.</li>
+      <li><strong>Read it your way.</strong> Three themes: Shallows (light), Deep (dark) and Lighthouse (high contrast), or Auto to follow your system.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Every Mermaid diagram type</h2>
+    <p>Siren draws diagrams with <a href="https://github.com/obsidianmd/pele">Pele</a>, which supports every diagram type built into Mermaid 12.1.0, including:</p>
+    <ul class="types">
+      <li>Flowchart</li><li>Sequence</li><li>Class</li><li>State</li><li>Entity relationship</li>
+      <li>Gantt</li><li>Pie</li><li>Mindmap</li><li>Timeline</li><li>Git graph</li>
+      <li>User journey</li><li>Quadrant chart</li><li>XY chart</li><li>Sankey</li><li>Architecture</li>
+      <li>Block</li><li>Packet</li><li>Requirement</li><li>C4</li><li>Kanban</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Private by design</h2>
+    <ul>
+      <li>Your diagram lives in the part of the link after <code>#</code>, which browsers never send to a server. Siren has no accounts, no analytics and no tracking.</li>
+      <li>Images inside a shared diagram aren't loaded, so a link can't reveal who opened it.</li>
+      <li>Links inside a diagram show where they really go and ask before opening.</li>
+      <li>Recent diagrams are kept only in your browser, and you can clear them at any time.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Works offline</h2>
+    <p>Once Siren has loaded, it needs no network. Every diagram type, the QR code and exports are part of the page, so you can keep working on a plane or a patchy connection.</p>
+  </section>
+
+  <section>
+    <h2>Tips</h2>
+    <ul>
+      <li>Click <strong>Siren</strong> in the editor's header for a blank diagram. Your browser's Back button returns to the one before.</li>
+      <li>Paste a fenced <code>```mermaid</code> block from GitHub or a chat, and Siren keeps just the diagram.</li>
+      <li>On a wide screen, drag the divider between the editor and the diagram, or focus it and use the arrow keys. Double-click resets it.</li>
+      <li>Add <code>?theme=light</code>, <code>dark</code> or <code>contrast</code> to a link to choose how it looks.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Credits</h2>
+    <p>Made by <a href="https://github.com/plwg">plwg</a>. Rendering by <a href="https://github.com/obsidianmd/pele">Pele</a>. Set in Instrument Sans and JetBrains Mono. Siren is open source under the <a href="https://github.com/plwg/siren/blob/main/LICENSE">MIT license</a>; the <a href="https://github.com/plwg/siren">source is on GitHub</a>.</p>
+  </section>
+</main>
+<footer><a href="../">Open the editor</a> · <a href="https://github.com/plwg/siren">Source</a></footer>
+</body>
+</html>

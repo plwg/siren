@@ -1,0 +1,74 @@
+/* Siren's themes, shared by the editor and the About page. src/theme.ts sets data-theme;
+   Shallows is the default. */
+:root {
+  /* Shallows (light): sea-glass neutrals biased toward the teal accent. */
+  --bg: #f6f8f7;
+  --panel: #edf1f0;
+  --surface: #e2eae9;
+  --surface-alt: #d3dfdd;
+  --border: #b7c7c5;
+  --fg: #132321;
+  --muted: #556866;
+  --line: #2a3c3a;
+  --accent: #0a6c73;
+  --on-accent: #ffffff;
+  --critical: #b3261e;
+  --warning: #8a5a00;
+  --focus: #0a6c73;
+  --stroke: 1px;
+  --line-number: #5d716f;
+  --error-band: color-mix(in srgb, #b3261e 13%, transparent);
+
+  --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 6px;
+
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  /* Deep (dark): deep water, never pure black, with the accent lifted for contrast. */
+  --bg: #0e1416;
+  --panel: #131c1f;
+  --surface: #1b272a;
+  --surface-alt: #243439;
+  --border: #34474c;
+  --fg: #d7e3e1;
+  --muted: #8fa2a0;
+  --line: #b6c7c5;
+  --accent: #5ec2c3;
+  --on-accent: #0b1a1b;
+  --critical: #f28b82;
+  --warning: #e3b55c;
+  --focus: #5ec2c3;
+  --line-number: #8fa2a0;
+  --error-band: color-mix(in srgb, #f28b82 18%, transparent);
+  color-scheme: dark;
+}
+:root[data-theme="contrast"] {
+  /* Lighthouse (high contrast): black and white with one beam of yellow, heavier strokes. */
+  --bg: #000000;
+  --panel: #000000;
+  --surface: #000000;
+  --surface-alt: #1f1f1f;
+  --border: #ffffff;
+  --fg: #ffffff;
+  --muted: #ffffff;
+  --line: #ffffff;
+  --accent: #ffd60a;
+  --on-accent: #000000;
+  --critical: #ff8a80;
+  --warning: #ffb347;
+  --focus: #ffd60a;
+  --stroke: 2px;
+  --line-number: #d9d9d9;
+  --error-band: color-mix(in srgb, #ff8a80 30%, transparent);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
