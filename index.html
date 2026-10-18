@@ -221,32 +221,71 @@
   footer a:hover { color: var(--accent); text-decoration-color: currentColor; }
   #pele-version { font-variant-numeric: tabular-nums; }
 
+  .panes, .narrow-only { display: none; }
+
   body.view header, body.view textarea, body.view footer { display: none; }
   body.view main { grid-template-columns: 1fr; }
 
+  /* Phones: one row of header, then the code or the diagram at full height. */
   @media (max-width: 720px) {
-    main { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
-    textarea { border-right: 0; border-bottom: var(--stroke) solid var(--border); }
-    header > .segmented { order: 3; flex-basis: 100%; }
-    header > .segmented label { flex: 1; text-align: center; }
+    header { flex-wrap: nowrap; padding-block: 8px; }
+    .panes { display: inline-flex; }
+    .narrow-only { display: grid; }
+    main { grid-template-columns: 1fr; }
+    textarea { border-right: 0; }
+    body[data-pane="diagram"] textarea, body[data-pane="code"] #diagram { display: none; }
+    body.view #diagram { display: block; }
+    #diagram { padding: 16px; }
+
+    #menu .themes { display: flex; }
+    #menu .themes label { flex: 1; text-align: center; }
+    #menu footer { padding: 0; border: 0; }
+
+    /* Messages float over the pane, so errors show while looking at the diagram. */
+    #status {
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      max-width: calc(100vw - 32px);
+      width: max-content;
+      padding: 8px 14px;
+      border: var(--stroke) solid var(--border);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--fg);
+      font-size: 13px;
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+      z-index: 5;
+    }
+    #status.error { border-color: var(--critical); }
+    #status:empty { display: none; }
   }
 </style>
 </head>
-<body>
+<body data-pane="diagram">
 <header>
   <h1>Siren</h1>
   <span id="status" role="status"></span>
-  <fieldset class="segmented">
+  <div class="segmented panes" role="radiogroup" aria-label="Show">
+    <input type="radio" name="pane" id="pane-code" value="code"><label for="pane-code">Code</label>
+    <input type="radio" name="pane" id="pane-diagram" value="diagram" checked><label for="pane-diagram">Diagram</label>
+  </div>
+  <fieldset class="segmented themes">
     <legend>Theme</legend>
     <input type="radio" name="theme" id="theme-auto" value="auto"><label for="theme-auto" title="Follow system setting">Auto</label>
     <input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light" title="Light">Shallows<span class="sr"> (light)</span></label>
     <input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark" title="Dark">Deep<span class="sr"> (dark)</span></label>
     <input type="radio" name="theme" id="theme-contrast" value="contrast"><label for="theme-contrast" title="High contrast">Lighthouse<span class="sr"> (high contrast)</span></label>
   </fieldset>
-  <button id="menu-button" class="menu-button" type="button" popovertarget="menu" aria-expanded="false" aria-label="Share and export" title="Share and export">
+  <button id="menu-button" class="menu-button" type="button" popovertarget="menu" aria-expanded="false" aria-label="Menu" title="Menu">
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
   <div id="menu" popover>
+    <!-- On phones, the theme switcher and the credits move in here; see src/layout.ts. -->
+    <section class="menu-section narrow-only" id="menu-appearance">
+      <h2>Appearance</h2>
+    </section>
     <section class="menu-section">
       <h2>Share</h2>
       <div class="menu-row">
@@ -284,6 +323,7 @@
       </div>
       <p class="hint">Exports ignore the editor theme. Clear suits documents; Solid suits slides.</p>
     </section>
+    <section class="menu-section narrow-only" id="menu-about"></section>
   </div>
 </header>
 <main>

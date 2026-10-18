@@ -5,6 +5,7 @@ Render Mermaid diagrams in the browser with [Pele](https://github.com/obsidianmd
 Live at https://plwg.github.io/siren/
 
 - Type Mermaid on the left; the diagram renders on the right.
+- On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL hash, so a link always carries it.
 - Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:

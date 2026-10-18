@@ -1,5 +1,6 @@
 import { mount } from 'pele';
 import { type Exported, exportSvg, svgToPng } from './export';
+import { initLayout } from './layout';
 import { exportOptions, initMenu } from './menu';
 import { initThemes, linkTheme } from './theme';
 import pkg from '../package.json';
@@ -32,6 +33,7 @@ const byId = <T extends HTMLElement>(id: string): T => document.getElementById(i
 
 if (new URLSearchParams(location.search).has('view')) document.body.classList.add('view');
 initThemes();
+initLayout();
 const menu = initMenu();
 
 const source = byId<HTMLTextAreaElement>('source');
@@ -39,9 +41,13 @@ const status = byId<HTMLSpanElement>('status');
 const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
 
+// Errors stay until the diagram draws; other messages clear themselves.
+let sayTimer: ReturnType<typeof setTimeout> | undefined;
 const say = (text: string, error = false): void => {
+  clearTimeout(sayTimer);
   status.textContent = text;
   status.classList.toggle('error', error);
+  if (text && !error) sayTimer = setTimeout(() => say(''), 3000);
 };
 
 const mounted = mount(diagram, source.value, {
