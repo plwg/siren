@@ -211,6 +211,13 @@
     --pele-radius: var(--radius);
   }
 
+  /* Pele wraps each linked node (its shape and label) in an <a> but leaves styling to the host.
+     Mark links in the accent color with an underlined label, so they read as links without hover. */
+  #diagram a > :not(text) { stroke: var(--accent); stroke-width: 1.5px; }
+  #diagram a text { text-decoration: underline; text-underline-offset: 2px; }
+  #diagram a:hover > :not(text),
+  #diagram a:focus-visible > :not(text) { stroke-width: 2.5px; }
+
   footer {
     display: flex;
     flex-wrap: wrap;

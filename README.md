@@ -35,7 +35,7 @@ Anyone can craft a Siren link, so diagrams are treated as untrusted:
 - [Pele](https://pele.run/security) draws labels as text, drops `click` callbacks, and blocks `javascript:` and `data:` links.
 - A Content Security Policy lets only Siren's own scripts run and blocks loading anything from other sites. `bun run build` fails if the inline theme script and its hash in the policy drift apart; `bun scripts/check-csp.ts --write` updates the hash.
 - Diagram images are not loaded, so a shared link can't track who views it.
-- Diagram links ask before opening and show where they really go. Exports contain no links or images.
+- Diagram links are drawn in the accent color with underlined labels, ask before opening, and show where they really go. Exports contain no links or images.
 - Fonts are self-hosted, so viewing Siren sends nothing to a font host. The diagram itself lives after the `#` in the URL and is never sent to any server.
 - GitHub Actions are pinned to commit hashes, and Dependabot proposes updates.
 
