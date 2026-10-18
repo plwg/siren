@@ -5,49 +5,211 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Siren</title>
 <meta name="description" content="Render Mermaid diagrams in the browser with Pele.">
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg: #fffcf0; --fg: #100f0f; --muted: #6f6e69; --panel: #f2f0e5; --border: #cecdc3; --accent: #205ea6;
-    --pele-bg: transparent; --pele-fg: #100f0f; --pele-muted: #6f6e69; --pele-line: #100f0f;
-    --pele-surface: #f2f0e5; --pele-surface-alt: #e6e4d9; --pele-border: #cecdc3;
-    --pele-accent: #205ea6; --pele-critical: #af3029;
-    --pele-font: system-ui, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #100f0f; --fg: #cecdc3; --muted: #878580; --panel: #1c1b1a; --border: #403e3c; --accent: #4385be;
-      --pele-fg: #cecdc3; --pele-muted: #878580; --pele-line: #cecdc3;
-      --pele-surface: #1c1b1a; --pele-surface-alt: #282726; --pele-border: #403e3c;
-      --pele-accent: #4385be; --pele-critical: #d14d41;
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<script>
+  // Resolve the theme before first paint so the page never flashes the wrong one.
+  // A `?theme=` in the URL wins (for shared or embedded links), then the saved choice, then the system.
+  (() => {
+    const themes = ['light', 'dark', 'contrast'];
+    let choice = new URLSearchParams(location.search).get('theme');
+    if (!themes.includes(choice)) {
+      try { choice = localStorage.getItem('siren-theme'); } catch { choice = null; }
     }
+    if (!themes.includes(choice)) {
+      choice = matchMedia('(prefers-contrast: more)').matches ? 'contrast'
+        : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.dataset.theme = choice;
+  })();
+</script>
+<style>
+  /* Layout: a header bar over a two-pane split, source on the left, diagram on the right; stacked on phones. */
+  :root {
+    /* Shallows (light): sea-glass neutrals biased toward the teal accent. */
+    --bg: #f6f8f7;
+    --panel: #edf1f0;
+    --surface: #e2eae9;
+    --surface-alt: #d3dfdd;
+    --border: #b7c7c5;
+    --fg: #132321;
+    --muted: #556866;
+    --line: #2a3c3a;
+    --accent: #0a6c73;
+    --on-accent: #ffffff;
+    --critical: #b3261e;
+    --focus: #0a6c73;
+    --stroke: 1px;
+
+    --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --radius: 6px;
+
+    color-scheme: light;
   }
+  :root[data-theme="dark"] {
+    /* Deep (dark): deep water, never pure black, with the accent lifted for contrast. */
+    --bg: #0e1416;
+    --panel: #131c1f;
+    --surface: #1b272a;
+    --surface-alt: #243439;
+    --border: #34474c;
+    --fg: #d7e3e1;
+    --muted: #8fa2a0;
+    --line: #b6c7c5;
+    --accent: #5ec2c3;
+    --on-accent: #0b1a1b;
+    --critical: #f28b82;
+    --focus: #5ec2c3;
+    color-scheme: dark;
+  }
+  :root[data-theme="contrast"] {
+    /* Lighthouse (high contrast): black and white with one beam of yellow, heavier strokes. */
+    --bg: #000000;
+    --panel: #000000;
+    --surface: #000000;
+    --surface-alt: #1f1f1f;
+    --border: #ffffff;
+    --fg: #ffffff;
+    --muted: #ffffff;
+    --line: #ffffff;
+    --accent: #ffd60a;
+    --on-accent: #000000;
+    --critical: #ff8a80;
+    --focus: #ffd60a;
+    --stroke: 2px;
+    color-scheme: dark;
+  }
+
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
-  body { background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; display: flex; flex-direction: column; }
-  header { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  header h1 { font-size: 16px; margin: 0 auto 0 0; }
-  button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.45 var(--font-ui);
+    display: flex;
+    flex-direction: column;
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 8px 12px;
+    flex-wrap: wrap;
+    padding-block: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    border-bottom: var(--stroke) solid var(--border);
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; min-width: 0; }
+  .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .brand span { color: var(--muted); font-size: 12px; }
+  #status { font-size: 12px; color: var(--muted); }
+  #status.error { color: var(--critical); }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  button {
+    font: 500 13px/1 var(--font-ui);
+    color: var(--fg);
+    background: var(--panel);
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 11px;
+    cursor: pointer;
+  }
   button:hover { border-color: var(--accent); }
+
+  /* Theme switcher: a segmented control built on radio inputs, so arrow keys work. */
+  .themes {
+    display: inline-flex;
+    padding: 2px;
+    gap: 2px;
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    margin: 0;
+  }
+  .themes legend, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .themes input { position: absolute; opacity: 0; pointer-events: none; }
+  .themes label {
+    font: 500 12px/1 var(--font-ui);
+    letter-spacing: 0.02em;
+    padding: 6px 9px;
+    border-radius: calc(var(--radius) - 2px);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .themes label:hover { color: var(--fg); }
+  .themes input:checked + label { background: var(--accent); color: var(--on-accent); }
+  .themes input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 1px; }
+
   main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); min-height: 0; }
-  textarea { width: 100%; height: 100%; resize: none; border: 0; border-right: 1px solid var(--border); padding: 16px; background: var(--panel); color: var(--fg); font: 13px/1.5 ui-monospace, monospace; outline: none; tab-size: 2; }
-  #diagram { padding: 16px; overflow: auto; min-width: 0; }
-  #status { color: var(--muted); font-size: 12px; }
+  textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: 0;
+    border-right: var(--stroke) solid var(--border);
+    padding: 16px;
+    background: var(--panel);
+    color: var(--fg);
+    font: 13px/1.6 var(--font-mono);
+    font-variant-ligatures: none;
+    tab-size: 2;
+    caret-color: var(--accent);
+  }
+  textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }
+  textarea::selection { background: var(--accent); color: var(--on-accent); }
+
+  #diagram {
+    padding: 24px;
+    overflow: auto;
+    min-width: 0;
+    --pele-bg: var(--bg);
+    --pele-fg: var(--fg);
+    --pele-muted: var(--muted);
+    --pele-line: var(--line);
+    --pele-surface: var(--surface);
+    --pele-surface-alt: var(--surface-alt);
+    --pele-border: var(--border);
+    --pele-accent: var(--accent);
+    --pele-critical: var(--critical);
+    --pele-font: var(--font-ui);
+    --pele-font-mono: var(--font-mono);
+    --pele-radius: var(--radius);
+  }
+
   body.view header, body.view textarea { display: none; }
   body.view main { grid-template-columns: 1fr; }
+
   @media (max-width: 720px) {
     main { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
-    textarea { border-right: 0; border-bottom: 1px solid var(--border); }
+    textarea { border-right: 0; border-bottom: var(--stroke) solid var(--border); }
+    .brand span { display: none; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>Siren</h1>
-  <span id="status"></span>
-  <button id="copy-link" type="button">Copy link</button>
-  <button id="copy-view" type="button">Copy view link</button>
-  <button id="download" type="button">Download SVG</button>
+  <div class="brand">
+    <h1>Siren</h1>
+    <span>Mermaid diagrams, rendered by Pele</span>
+  </div>
+  <span id="status" role="status"></span>
+  <fieldset class="themes">
+    <legend>Theme</legend>
+    <input type="radio" name="theme" id="theme-auto" value="auto"><label for="theme-auto" title="Follow system setting">Auto</label>
+    <input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light" title="Light">Shallows<span class="sr"> (light)</span></label>
+    <input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark" title="Dark">Deep<span class="sr"> (dark)</span></label>
+    <input type="radio" name="theme" id="theme-contrast" value="contrast"><label for="theme-contrast" title="High contrast">Lighthouse<span class="sr"> (high contrast)</span></label>
+  </fieldset>
+  <div class="actions">
+    <button id="copy-link" type="button">Copy link</button>
+    <button id="copy-view" type="button">Copy view link</button>
+    <button id="download" type="button">Download SVG</button>
+  </div>
 </header>
 <main>
   <textarea id="source" spellcheck="false" aria-label="Mermaid source"></textarea>

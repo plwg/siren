@@ -1,4 +1,5 @@
 import { mount } from 'pele';
+import { initThemes, linkTheme } from './theme';
 
 const DEFAULT = `flowchart LR
   A[Write Mermaid] --> B{Pele}
@@ -27,19 +28,25 @@ const fromHash = (): string | null => {
 const byId = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
 if (new URLSearchParams(location.search).has('view')) document.body.classList.add('view');
+initThemes();
 
 const source = byId<HTMLTextAreaElement>('source');
 const status = byId<HTMLSpanElement>('status');
+const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
 
-const mounted = mount(byId('diagram'), source.value, {
-  onRender: () => {
-    status.textContent = '';
-  },
-  onError: (e) => {
-    status.textContent = e instanceof Error ? e.message : String(e);
-  },
+const say = (text: string, error = false): void => {
+  status.textContent = text;
+  status.classList.toggle('error', error);
+};
+
+const mounted = mount(diagram, source.value, {
+  onRender: () => say(''),
+  onError: (e) => say(e instanceof Error ? e.message : String(e), true),
 });
+
+// Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
+void document.fonts.ready.then(() => mounted.refresh());
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 source.addEventListener('input', () => {
@@ -58,11 +65,32 @@ window.addEventListener('hashchange', () => {
   }
 });
 
-const link = (asView: boolean): string =>
-  `${location.origin}${location.pathname}${asView ? '?view' : ''}#${encode(source.value)}`;
+// A view link carries an explicitly chosen theme, so an embedded diagram looks the way it was shared.
+const link = (asView: boolean): string => {
+  const params: string[] = [];
+  if (asView) params.push('view');
+  const theme = linkTheme();
+  if (asView && theme) params.push(`theme=${theme}`);
+  const query = params.length ? `?${params.join('&')}` : '';
+  return `${location.origin}${location.pathname}${query}#${encode(source.value)}`;
+};
 const copy = async (text: string, label: string): Promise<void> => {
-  await navigator.clipboard.writeText(text);
-  status.textContent = `${label} copied`;
+  try {
+    await navigator.clipboard.writeText(text);
+    say(`${label} copied`);
+  } catch {
+    say(`Couldn't copy the ${label.toLowerCase()}. Copy it from the address bar instead.`, true);
+  }
+};
+
+// Pele's SVG reads colors and fonts from --pele-* variables with built-in fallbacks. Bake in the
+// current theme's values so the downloaded file looks like the screen, on its own background.
+const themedSvg = (svg: string): string => {
+  const style = getComputedStyle(diagram);
+  return svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (match, name: string) => {
+    const value = style.getPropertyValue(`--pele-${name}`).trim();
+    return value ? value.replace(/"/g, '&quot;') : match;
+  });
 };
 
 byId('copy-link').addEventListener('click', () => copy(link(false), 'Link'));
@@ -71,7 +99,7 @@ byId('download').addEventListener('click', () => {
   const svg = mounted.result?.svg;
   if (!svg) return;
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  a.href = URL.createObjectURL(new Blob([themedSvg(svg)], { type: 'image/svg+xml' }));
   a.download = 'diagram.svg';
   a.click();
   URL.revokeObjectURL(a.href);
