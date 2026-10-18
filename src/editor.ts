@@ -1,9 +1,9 @@
-import { highlight } from './highlight';
+import { numberedLines } from './lines';
 
 // The editor is a plain textarea, so typing, undo, selection and mobile keyboards behave as usual.
-// Behind it, a <pre> holds the same text highlighted, with line numbers; the textarea's own text is
-// transparent. Both must wrap identically: index.html gives them the same font, padding and
-// scrollbar room.
+// Behind it, a <pre> holds the same text, invisible, split into lines that carry line numbers and
+// mark the line with an error. Both must wrap identically: index.html gives them the same font,
+// padding and scrollbar room.
 
 export interface Editor {
   /** Redraws the backdrop, after the text was set from code. */
@@ -39,7 +39,7 @@ export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement)
   let errorLine: number | null = null;
 
   const draw = (): void => {
-    backdrop.innerHTML = highlight(textarea.value, errorLine);
+    backdrop.innerHTML = numberedLines(textarea.value, errorLine);
     // The gutter fits the widest line number.
     container.style.setProperty('--digits', String(String(textarea.value.split('\n').length).length));
     sync();

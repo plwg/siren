@@ -48,10 +48,8 @@
     --warning: #8a5a00;
     --focus: #0a6c73;
     --stroke: 1px;
-    --code-keyword: #0a6c73;
-    --code-string: #8a4a13;
-    --code-quiet: #5d716f;
-    --code-error: color-mix(in srgb, #b3261e 13%, transparent);
+    --line-number: #5d716f;
+    --error-band: color-mix(in srgb, #b3261e 13%, transparent);
 
     --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -74,10 +72,8 @@
     --critical: #f28b82;
     --warning: #e3b55c;
     --focus: #5ec2c3;
-    --code-keyword: #5ec2c3;
-    --code-string: #e6c07b;
-    --code-quiet: #8fa2a0;
-    --code-error: color-mix(in srgb, #f28b82 18%, transparent);
+    --line-number: #8fa2a0;
+    --error-band: color-mix(in srgb, #f28b82 18%, transparent);
     color-scheme: dark;
   }
   :root[data-theme="contrast"] {
@@ -96,10 +92,8 @@
     --warning: #ffb347;
     --focus: #ffd60a;
     --stroke: 2px;
-    --code-keyword: #ffd60a;
-    --code-string: #7fdbff;
-    --code-quiet: #d9d9d9;
-    --code-error: color-mix(in srgb, #ff8a80 30%, transparent);
+    --line-number: #d9d9d9;
+    --error-band: color-mix(in srgb, #ff8a80 30%, transparent);
     color-scheme: dark;
   }
 
@@ -250,8 +244,8 @@
     outline: none;
   }
   .resizing { cursor: col-resize; user-select: none; }
-  /* The editor: a textarea with transparent text over a highlighted copy with line numbers (see
-     src/editor.ts). Every rule that affects where text wraps applies to both layers alike. */
+  /* The editor: a textarea over an invisible copy of its text that carries line numbers and the
+     error band (see src/editor.ts). Every rule that affects where text wraps applies to both. */
   .editor {
     --gutter: calc(var(--digits, 1) * 1ch + 28px);
     position: relative;
@@ -276,16 +270,15 @@
     overflow-wrap: anywhere;
     scrollbar-gutter: stable;
   }
-  .editor > pre { overflow: hidden; color: var(--fg); pointer-events: none; counter-reset: line; }
+  .editor > pre { overflow: hidden; color: transparent; pointer-events: none; counter-reset: line; }
   .editor > textarea {
     resize: none;
     overflow: auto;
     background: transparent;
-    color: transparent;
+    color: var(--fg);
     caret-color: var(--accent);
   }
   .editor > textarea:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }
-  .editor > textarea::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: transparent; }
   /* Each line reaches back into the gutter, so its number and any error band sit with it. The
      equal negative margin and padding leave the width text wraps in unchanged. */
   .editor .line {
@@ -301,17 +294,11 @@
     left: 0;
     width: calc(var(--gutter) - 14px);
     text-align: right;
-    color: var(--code-quiet);
+    color: var(--line-number);
     opacity: 0.65;
   }
-  .editor .line.error { background: var(--code-error); }
+  .editor .line.error { background: var(--error-band); }
   .editor .line.error::before { color: var(--critical); opacity: 1; font-weight: 500; }
-  .tok-type { color: var(--code-keyword); font-weight: 500; }
-  .tok-keyword { color: var(--code-keyword); }
-  .tok-string, .tok-label { color: var(--code-string); }
-  .tok-arrow { color: var(--code-quiet); font-weight: 500; }
-  .tok-punct { color: var(--code-quiet); }
-  .tok-comment { color: var(--code-quiet); font-style: italic; }
 
   #diagram {
     /* Pele's error snippets quote the source; show `-->` as typed, not as a ligature. */
