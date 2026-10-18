@@ -32,8 +32,11 @@ export function setStanding(text: string | null, kind: Exclude<Kind, 'info'> = '
 export function flash(text: string, kind: Kind = 'info'): void {
   clearTimeout(timer);
   show({ text, kind });
-  timer = setTimeout(() => {
-    timer = undefined;
-    show(standing);
-  }, kind === 'error' ? 6000 : 3000);
+  timer = setTimeout(
+    () => {
+      timer = undefined;
+      show(standing);
+    },
+    kind === 'error' ? 6000 : 3000,
+  );
 }

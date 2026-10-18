@@ -49,6 +49,8 @@ Requires [Bun](https://bun.sh).
 bun install
 bun run dev        # local dev server
 bun run typecheck
+bun run lint       # Biome: lint and formatting check
+bun run format     # Biome: fix formatting and import order
 bun run build      # outputs to dist/
 ```
 

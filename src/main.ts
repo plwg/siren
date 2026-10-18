@@ -1,12 +1,12 @@
 import { mount } from 'pele';
+import pkg from '../package.json';
 import { type Exported, exportSvg, svgToPng } from './export';
+import { countImages } from './images';
 import { initLayout } from './layout';
 import { guardLinks } from './links';
-import { countImages } from './images';
 import { exportOptions, initMenu } from './menu';
 import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
-import pkg from '../package.json';
 
 // The last node links to Siren with no diagram in the URL, which opens this sample again: as close
 // to a quine as a link can get, since a URL can't contain an encoding of text that contains it.

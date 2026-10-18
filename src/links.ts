@@ -19,7 +19,8 @@ export function guardLinks(diagram: HTMLElement): void {
       return;
     }
     // The hostname shows punycode (xn--…) for look-alike domains, which is the point.
-    host.textContent = pending.protocol === 'mailto:' || pending.protocol === 'tel:' ? pending.protocol.slice(0, -1) : pending.hostname;
+    host.textContent =
+      pending.protocol === 'mailto:' || pending.protocol === 'tel:' ? pending.protocol.slice(0, -1) : pending.hostname;
     full.textContent = pending.href;
     dialog.returnValue = '';
     dialog.showModal();

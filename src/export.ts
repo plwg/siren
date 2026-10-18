@@ -19,7 +19,10 @@ export interface ExportOptions {
 
 export const DEFAULT_EXPORT: ExportOptions = { palette: 'sea', mode: 'light', background: 'clear' };
 
-type Colors = Record<'bg' | 'fg' | 'muted' | 'line' | 'surface' | 'surface-alt' | 'border' | 'accent' | 'critical', string>;
+type Colors = Record<
+  'bg' | 'fg' | 'muted' | 'line' | 'surface' | 'surface-alt' | 'border' | 'accent' | 'critical',
+  string
+>;
 
 const PALETTES: Record<Palette, Record<Mode, Colors>> = {
   // The Shallows and Deep editor themes, on white and on deep water.
