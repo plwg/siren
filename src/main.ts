@@ -190,6 +190,7 @@ const download = (blob: Blob, name: string): void => {
 
 action('copy-link', () => copy(link(false), 'Link'));
 action('copy-view', () => copy(link(true), 'View link'));
+byId('open-view').addEventListener('click', () => window.open(link(true), '_blank', 'noopener'));
 
 // A QR code of a share link, so a phone can open the diagram from the screen.
 const qrDialog = byId<HTMLDialogElement>('qr');

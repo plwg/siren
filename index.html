@@ -128,8 +128,8 @@
   .segmented input:checked + label { background: var(--accent); color: var(--on-accent); }
   .segmented input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 1px; }
 
-  .menu-button { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; }
-  .menu-button svg { width: 16px; height: 16px; }
+  .icon-button, .menu-button { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; }
+  .icon-button svg, .menu-button svg { width: 16px; height: 16px; }
   .menu-button[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
 
   #menu {
@@ -465,6 +465,9 @@
     <input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark" title="Dark">Deep<span class="sr"> (dark)</span></label>
     <input type="radio" name="theme" id="theme-contrast" value="contrast"><label for="theme-contrast" title="High contrast">Lighthouse<span class="sr"> (high contrast)</span></label>
   </fieldset>
+  <button id="open-view" class="icon-button" type="button" aria-label="Open view in new tab" title="Open view in new tab">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
   <button id="menu-button" class="menu-button" type="button" popovertarget="menu" aria-expanded="false" aria-label="Menu" title="Menu">
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
