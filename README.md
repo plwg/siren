@@ -10,11 +10,11 @@ Live at https://plwg.github.io/siren/
 
 <table>
   <tr>
-    <td valign="top"><img alt="Shallows light theme" src="docs/screenshots/desktop-light.png" width="400"></td>
+    <td valign="top"><img alt="Sail light theme" src="docs/screenshots/desktop-light.png" width="400"></td>
     <td valign="top"><img alt="Deep dark theme" src="docs/screenshots/desktop-dark.png" width="400"></td>
   </tr>
   <tr>
-    <td>Shallows (light)</td>
+    <td>Sail (light)</td>
     <td>Deep (dark)</td>
   </tr>
 </table>
@@ -26,12 +26,12 @@ Live at https://plwg.github.io/siren/
 - The diagram is saved in the URL, compressed, so a link always carries it.
 - Once the page has loaded, Siren needs no network: every diagram type, the QR code and exports are in the page, so it keeps working offline.
 - The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
-- Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
+- Themes: **Sail** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:
   - **QR code** shows a scannable code of the view or editor link, to open the diagram on a phone; it can be downloaded as a PNG.
   - **Copy link** opens the editor with the diagram; **Copy view link** shows only the diagram, in the theme you picked, with an **Edit in Siren** button to open it in the editor.
   - **Copy image** puts a PNG on the clipboard to paste into documents; **SVG** and **PNG** download files.
-  - Exports ignore the editor theme. Choose **Sea** or **Neutral** colors, **Light** or **Dark**, and a **Clear** or **Solid** background. Text is set in Arial so it fits in any document app.
+  - Exports ignore the editor theme. They use plain greys with a blue accent. Choose **Light** or **Dark** and a **Clear** or **Solid** background. Text is set in Arial so it fits in any document app.
 
 ## Security
 
