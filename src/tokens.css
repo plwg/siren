@@ -1,22 +1,24 @@
 /* Siren's themes, shared by the editor and the About page. src/theme.ts sets data-theme;
-   Shallows is the default. */
+   Sail is the default. */
 :root {
-  /* Shallows (light): sea-glass neutrals biased toward the teal accent. */
-  --bg: #f6f8f7;
-  --panel: #edf1f0;
-  --surface: #e2eae9;
-  --surface-alt: #d3dfdd;
-  --border: #b7c7c5;
-  --fg: #132321;
-  --muted: #556866;
-  --line: #2a3c3a;
+  /* Sail (light): white and untinted greys, so the colors a diagram sets with `style` and
+     `classDef` look as written, with dark text on them as they were picked to carry. The greys
+     match light exports (src/export.ts); only the accent differs. */
+  --bg: #ffffff;
+  --panel: #f8f9fa;
+  --surface: #f1f3f4;
+  --surface-alt: #e3e5e8;
+  --border: #bdc1c6;
+  --fg: #1f1f1f;
+  --muted: #5f6368;
+  --line: #3c4043;
   --accent: #0a6c73;
   --on-accent: #ffffff;
   --critical: #b3261e;
   --warning: #8a5a00;
   --focus: #0a6c73;
   --stroke: 1px;
-  --line-number: #5d716f;
+  --line-number: #5f6368;
   --error-band: color-mix(in srgb, #b3261e 13%, transparent);
 
   --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
