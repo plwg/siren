@@ -10,9 +10,10 @@ on:
 permissions:
   contents: read
 
-# One group per branch or PR, so a PR run never cancels a deploy from main.
+# One group per branch or PR, so a PR run never cancels a deploy from main. PR runs are keyed
+# on the PR number, since a run that starts just after a merge gets github.ref = refs/heads/main.
 concurrency:
-  group: pages-${{ github.ref }}
+  group: pages-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
