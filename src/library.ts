@@ -45,9 +45,13 @@ export function parseEntries(raw: string | null): Entry[] {
   }
 }
 
-/** The entries with this one first, replacing any older copy of it. */
+/** The entries with this one first, replacing any older copy of it or of its text. */
 export const upsert = (entries: Entry[], entry: Entry): Entry[] =>
-  [entry, ...entries.filter((e) => e.id !== entry.id)].slice(0, MAX_ENTRIES);
+  [
+    entry,
+    // The same text again, as when a link is opened twice, is one entry.
+    ...entries.filter((e) => e.id !== entry.id && !(e.text === entry.text && modeOf(e) === modeOf(entry))),
+  ].slice(0, MAX_ENTRIES);
 
 const TYPE_NAMES: Record<string, string> = {
   flowchart: 'Flowchart',
@@ -128,8 +132,10 @@ export interface Library {
   saved(text: string): void;
   /** Starts a new entry, for a diagram that arrived from a link. */
   arrived(): void;
-  /** Keeps the current text before the mode changes, and starts a new entry; says if it kept any. */
-  leaving(): boolean;
+  /** Keeps the current text and starts a new entry, before something else is opened; says if it kept any. */
+  opening(): boolean;
+  /** The most recent text kept in this mode, which edits then update; null if there is none. */
+  resume(mode: EditorMode): string | null;
   /** Shows the examples for the current mode. */
   modeChanged(): void;
 }
@@ -148,12 +154,13 @@ export function initLibrary(
   const menu = document.getElementById('menu') as HTMLElement;
   // Untouched examples and the default diagram aren't worth keeping.
   const untouched = new Set([...pristine, ...TEMPLATES.map((t) => t.text)]);
-  let current = newId();
+  // Each mode has its own text, so each has its own entry being edited.
+  const current: Record<EditorMode, string> = { mermaid: newId(), markdown: newId() };
 
   /** Saves the text under the current entry; says whether there was anything worth saving. */
   const keep = (text: string): boolean => {
     if (untouched.has(text) || !text.trim()) return false;
-    store(upsert(load(), { id: current, text, at: Date.now(), mode: mode() }));
+    store(upsert(load(), { id: current[mode()], text, at: Date.now(), mode: mode() }));
     return true;
   };
 
@@ -171,11 +178,11 @@ export function initLibrary(
         time.dateTime = new Date(entry.at).toISOString();
         time.textContent = ago(entry.at, now);
         button.append(name, time);
-        if (entry.id === current) button.setAttribute('aria-current', 'true');
+        if (entry.id === current[mode()]) button.setAttribute('aria-current', 'true');
         button.addEventListener('click', () => {
-          if (entry.id === current) return;
+          if (entry.id === current[mode()]) return;
           keep(source.value);
-          current = entry.id;
+          current[mode()] = entry.id;
           replaceText(source, entry.text);
           menu.hidePopover();
         });
@@ -199,7 +206,7 @@ export function initLibrary(
     select.value = '';
     if (!template) return;
     const kept = keep(source.value);
-    current = newId();
+    current[mode()] = newId();
     replaceText(source, template.text);
     menu.hidePopover();
     const name = template.name.toLowerCase();
@@ -219,12 +226,18 @@ export function initLibrary(
       keep(text);
     },
     arrived: () => {
-      current = newId();
+      current[mode()] = newId();
     },
-    leaving: () => {
+    opening: () => {
       const kept = keep(source.value);
-      current = newId();
+      current[mode()] = newId();
       return kept;
+    },
+    resume: (which) => {
+      const entry = load().find((e) => modeOf(e) === which);
+      if (!entry) return null;
+      current[which] = entry.id;
+      return entry.text;
     },
     modeChanged: listExamples,
   };

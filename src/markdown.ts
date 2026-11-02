@@ -53,9 +53,6 @@ export function documentTitle(text: string): string {
   return first.replace(/[*_`~]+|^[>\-+]\s+|\[([^\]]*)\]\([^)]*\)/g, (_m, link) => link ?? '').trim();
 }
 
-/** The first ```mermaid block's text, or null if there is none. */
-export const firstDiagram = (source: string): string | null => renderMarkdown(source).blocks[0]?.text ?? null;
-
 /** The document as HTML, with an empty slot for each Mermaid block. */
 export function renderMarkdown(source: string): Rendered {
   const blocks: Block[] = [];

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { titleOf } from '../src/library';
-import { documentTitle, firstDiagram, renderMarkdown, safeHref } from '../src/markdown';
+import { documentTitle, renderMarkdown, safeHref } from '../src/markdown';
 
 test('Markdown renders', () => {
   const { html } = renderMarkdown('# Title\n\n*a* **b** `c`\n\n| x |\n| - |\n| 1 |\n\n- [x] done');
@@ -62,11 +62,6 @@ test('a document is named by its first heading, or else its first line', () => {
   expect(documentTitle('Just a [link](https://x.org) here')).toBe('Just a link here');
   expect(titleOf('flowchart LR\n', 'markdown')).toBe('flowchart LR');
   expect(titleOf('  \n', 'markdown')).toBe('Untitled document');
-});
-
-test("a document's first diagram can be taken out", () => {
-  expect(firstDiagram('# A\n\n```mermaid\npie\n  "a": 1\n```\n\n```mermaid\nflowchart LR\n```')).toBe('pie\n  "a": 1');
-  expect(firstDiagram('# No diagrams')).toBeNull();
 });
 
 test('text that looks like a diagram is still a document in Markdown mode', () => {

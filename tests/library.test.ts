@@ -23,6 +23,13 @@ describe('saved entries', () => {
     expect(parseEntries(raw).map(modeOf)).toEqual(['mermaid', 'markdown']);
   });
 
+  test('the same text is kept once', () => {
+    const first = { id: 'a', text: '# Doc', at: 1, mode: 'markdown' as const };
+    const again = { ...first, id: 'b', at: 2 };
+    expect(upsert([first], again).map((e) => e.id)).toEqual(['b']);
+    expect(upsert([first], { ...again, mode: 'mermaid' }).map((e) => e.id)).toEqual(['b', 'a']);
+  });
+
   test('unreadable storage gives no entries', () => {
     expect(parseEntries(null)).toEqual([]);
     expect(parseEntries('{not json')).toEqual([]);

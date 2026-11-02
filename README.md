@@ -21,10 +21,10 @@ Live at https://plwg.github.io/siren/
 
 - Click **Siren** in the header for a blank editor; Back returns to the previous diagram.
 - Type Mermaid on the left; the diagram renders on the right. The editor numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
-- Two modes, switched beside the name (in the ☰ menu on phones): **Mermaid** for one diagram, and **Markdown** for a GitHub-flavored Markdown document in which each ```` ```mermaid ```` block is drawn as a diagram. Switching to Markdown wraps the diagram in a ```` ```mermaid ```` block; switching back keeps the document's first diagram and puts the document in Recent. Back undoes a switch. The link carries the mode (`#d.` for a diagram, `#m.` for a document), so older links still open as diagrams.
+- Two modes, switched beside the name (in the ☰ menu on phones): **Mermaid** for one diagram, and **Markdown** for a GitHub-flavored Markdown document in which each ```` ```mermaid ```` block is drawn as a diagram. Each mode keeps its own text: switching shows the other mode's text and changes neither, and after a reload the mode not in the link picks up what you last wrote in it. Back undoes a switch. The link carries the mode (`#d.` for a diagram, `#m.` for a document), so older links still open as diagrams.
 - In a document, a broken diagram shows its error in place and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. A pasted ```` ```mermaid ```` block keeps its fences in Markdown mode.
 - On wider screens, drag the divider between the editor and the diagram to resize them (arrow keys work when it's focused; double-click resets).
-- On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
+- On phones, **Code** and **Diagram** (or **Document**) tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram or document is saved in the URL, compressed, so a link always carries it. Prose compresses to about six link characters per ten typed, so a long document makes a long link; Siren reads links of up to 200 KB of text.
 - Once the page has loaded, Siren needs no network: every diagram type, the QR code and exports are in the page, so it keeps working offline.
 - The ☰ menu shows what suits the mode. Its **Diagrams** or **Documents** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph; or release notes and a project plan) and lists your recent work in that mode, kept only in this browser.
@@ -33,7 +33,7 @@ Live at https://plwg.github.io/siren/
   - **QR code** shows a scannable code of the view or editor link, to open the diagram on a phone; it can be downloaded as a PNG.
   - **Copy link** opens the editor with the diagram; **Copy view link** shows only the diagram, in the theme you picked, with an **Edit in Siren** button to open it in the editor.
   - **Copy image** puts a PNG on the clipboard to paste into documents; **SVG** and **PNG** download files.
-  - In Markdown mode, **PDF** opens the browser's print dialog (choose Save as PDF): only the document, in light colors whatever the theme, named after its first heading. **Markdown file** downloads the text as `.md`.
+  - In Markdown mode, **PDF** opens the browser's print dialog (choose Save as PDF): only the document, in light colors whatever the theme, named after its first heading. **Markdown file** downloads the text as `.md`, and **Open Markdown file…** (under Documents) opens one from your device, keeping the current document in Recent.
   - Exports ignore the editor theme. Choose **Sea** or **Neutral** colors, **Light** or **Dark**, and a **Clear** or **Solid** background. Text is set in Arial so it fits in any document app.
 
 ## Security

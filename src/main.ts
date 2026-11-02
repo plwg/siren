@@ -1,14 +1,14 @@
 import { type Mounted, type MountOptions, mount } from 'pele';
 import pkg from '../package.json';
 import { type DocumentReport, type DocumentView, initDocument } from './document';
-import { initEditor } from './editor';
+import { initEditor, replaceText } from './editor';
 import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeLink, encodeDiagram } from './hash';
 import { initLayout } from './layout';
 import { initLibrary } from './library';
 import { guardLinks } from './links';
-import { documentTitle, firstDiagram } from './markdown';
+import { documentTitle } from './markdown';
 import { exportOptions, initMenu } from './menu';
 import { type EditorMode, noun } from './mode';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
@@ -144,16 +144,28 @@ const library = initLibrary(
   (message) => flash(message),
 );
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+const saveNow = (): void => {
+  clearTimeout(saveTimer);
+  // A document is kept even while one of its diagrams is broken: the prose is worth keeping.
+  if (!viewing && (doc || (mounted && !mounted.error))) library.saved(source.value);
+};
 const saveSoon = (): void => {
   if (viewing) return;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    // A document is kept even while one of its diagrams is broken: the prose is worth keeping.
-    if (doc || (mounted && !mounted.error)) library.saved(source.value);
-  }, 1000);
+  saveTimer = setTimeout(saveNow, 1000);
 };
 // A diagram that arrived in a link is kept too, so it can be found again.
 if (arrived !== null) saveSoon();
+
+// Each mode keeps its own text: switching shows the other mode's text and changes neither. The
+// mode not in the link starts from what was last kept in it, so both survive a reload; a diagram
+// otherwise starts from the sample, and a document empty.
+const texts: Record<EditorMode, string> = { mermaid: DEFAULT, markdown: '' };
+if (!viewing) {
+  for (const other of ['mermaid', 'markdown'] as const) {
+    if (other !== mode) texts[other] = library.resume(other) ?? texts[other];
+  }
+}
 
 const fragment = (): string => encodeDiagram(source.value, mode);
 
@@ -182,33 +194,18 @@ const applyMode = (): void => {
 applyMode();
 draw(source.value);
 
-// Switching modes carries the work across where it can: a diagram becomes a document holding it,
-// and a document gives up its first diagram. What was there first is kept in Recent, and Back
-// returns to it.
+// Shows another mode, with the text it had. Back returns to the mode before.
 const switchMode = (next: EditorMode): void => {
   if (next === mode) return;
-  const text = source.value;
-  const kept = library.leaving();
-  const previous = noun(mode);
-  let note: string;
-  let converted: string;
-  if (next === 'markdown') {
-    converted = isBlank(text) ? '' : `\`\`\`mermaid\n${text.trimEnd()}\n\`\`\`\n`;
-    note = isBlank(text) ? 'Writing Markdown.' : 'Writing Markdown. Your diagram is now a ```mermaid block in it.';
-  } else {
-    const first = firstDiagram(text);
-    converted = first ?? '';
-    note = first === null ? 'Writing Mermaid.' : "Writing Mermaid, starting from the document's first diagram.";
-  }
-  if (kept && next === 'mermaid') note += ` Your ${previous} is in Recent.`;
+  saveNow();
+  texts[mode] = source.value;
   mode = next;
   applyMode();
-  source.value = converted;
+  source.value = texts[mode];
   editor.refresh();
-  draw(converted);
+  draw(source.value);
   history.pushState(null, '', `${location.pathname}${location.search}#${fragment()}`);
   updateEditLink();
-  flash(note);
 };
 for (const radio of modeRadios) radio.addEventListener('change', () => switchMode(radio.value as EditorMode));
 
@@ -225,11 +222,14 @@ source.addEventListener('input', () => {
 window.addEventListener('hashchange', () => {
   const link = fromHash();
   if (link !== null && (link.text !== source.value || link.mode !== mode)) {
-    library.arrived();
     if (link.mode !== mode) {
+      saveNow();
+      texts[mode] = source.value;
       mode = link.mode;
       applyMode();
     }
+    // Back to a mode's own text (after a switch) continues its entry; anything else is new.
+    if (link.text !== texts[mode]) library.arrived();
     source.value = link.text;
     editor.refresh();
     saveSoon();
@@ -363,6 +363,30 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => {
   document.title = pageTitle;
+});
+// Opens a Markdown file from this device as a new document: the one in the editor is kept in
+// Recent, and Undo brings it back. The file is read here and goes nowhere else.
+const MAX_FILE = 200_000;
+const filePicker = byId<HTMLInputElement>('open-file-input');
+action('open-file', () => filePicker.click());
+filePicker.addEventListener('change', async () => {
+  const file = filePicker.files?.[0];
+  filePicker.value = '';
+  if (!file) return;
+  if (file.size > MAX_FILE) {
+    flash(`${file.name} is too large. Siren opens files up to 200 KB.`, 'error');
+    return;
+  }
+  let text: string;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer());
+  } catch {
+    flash(`${file.name} isn't a text file Siren can read.`, 'error');
+    return;
+  }
+  const kept = library.opening();
+  replaceText(source, text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n'));
+  flash(`Opened ${file.name}.${kept ? ' Your previous document is in Recent.' : ''}`);
 });
 action('download-md', () => {
   const file = docName()
