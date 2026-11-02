@@ -54,10 +54,46 @@ const TYPE_NAMES: Record<string, string> = {
   mindmap: 'Mindmap',
   timeline: 'Timeline',
   gitGraph: 'Git graph',
-  journey: 'Journey',
-  quadrantChart: 'Quadrant',
+  journey: 'User journey',
+  quadrantChart: 'Quadrant chart',
+  xychart: 'XY chart',
   'xychart-beta': 'XY chart',
+  requirementDiagram: 'Requirement',
+  C4Context: 'C4',
+  C4Container: 'C4',
+  C4Component: 'C4',
+  C4Dynamic: 'C4',
+  C4Deployment: 'C4',
+  'block-beta': 'Block',
+  'packet-beta': 'Packet',
+  architecture: 'Architecture',
   'architecture-beta': 'Architecture',
+  radar: 'Radar',
+  'radar-beta': 'Radar',
+  treemap: 'Treemap',
+  'treemap-beta': 'Treemap',
+  agentflow: 'Agent flow',
+  'agentflow-beta': 'Agent flow',
+  usecase: 'Use case',
+  'usecase-beta': 'Use case',
+  railroad: 'Railroad',
+  'railroad-beta': 'Railroad',
+  'railroad-ebnf-beta': 'Railroad',
+  'railroad-abnf-beta': 'Railroad',
+  'railroad-peg-beta': 'Railroad',
+  treeView: 'Tree view',
+  'treeView-beta': 'Tree view',
+  venn: 'Venn',
+  'venn-beta': 'Venn',
+  cynefin: 'Cynefin',
+  'cynefin-beta': 'Cynefin',
+  wardley: 'Wardley map',
+  'wardley-beta': 'Wardley map',
+  swimlane: 'Swimlane',
+  'swimlane-beta': 'Swimlane',
+  ishikawa: 'Ishikawa',
+  'ishikawa-beta': 'Ishikawa',
+  eventmodeling: 'Event modeling',
 };
 
 /** A short name for a diagram: its type, and its title or first label. */
@@ -74,7 +110,7 @@ export function titleOf(text: string): string {
     .slice(1)
     .join('\n')
     .match(/\w[[({]+"?([^\])}"\n]+?)"?[\])}]+|"([^"\n]+)"/);
-  const detail = (title ?? label?.slice(1).find(Boolean) ?? '').trim();
+  const detail = (title ?? label?.slice(1).find(Boolean) ?? '').trim().replace(/^"(.*)"$/, '$1');
   const short = detail.length > 40 ? `${detail.slice(0, 39)}…` : detail;
   return short ? `${type} · ${short}` : type;
 }

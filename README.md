@@ -25,7 +25,7 @@ Live at https://plwg.github.io/siren/
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL, compressed, so a link always carries it.
 - Once the page has loaded, Siren needs no network: every diagram type, the QR code and exports are in the page, so it keeps working offline.
-- The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
+- The ☰ menu's **Diagrams** section starts you from an example of every diagram type Pele draws, from flowcharts and sequence diagrams to Wardley maps and Venn diagrams, and lists your recent diagrams, kept only in this browser.
 - Themes: **Sail** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:
   - **QR code** shows a scannable code of the view or editor link, to open the diagram on a phone; it can be downloaded as a PNG.
