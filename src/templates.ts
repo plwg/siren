@@ -88,7 +88,7 @@ export const TEMPLATES: Template[] = [
     text: `mindmap
   root((Siren))
     Themes
-      Shallows
+      Sail
       Deep
       Lighthouse
     Sharing

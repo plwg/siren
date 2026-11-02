@@ -472,18 +472,18 @@
   header > .modes { margin-right: auto; }
   body[data-mode="markdown"] .for-mermaid, body:not([data-mode="markdown"]) .for-markdown { display: none; }
 
-  /* Printing (the PDF export) shows only the preview, in Shallows' light colors on white. */
+  /* Printing (the PDF export) shows only the preview, in Sail's light colors (see src/tokens.css). */
   @page { margin: 18mm 16mm; }
   @media print {
     html:root, html:root[data-theme] {
       --bg: #ffffff;
-      --panel: #f3f6f5;
-      --surface: #e2eae9;
-      --surface-alt: #d3dfdd;
-      --border: #b7c7c5;
-      --fg: #132321;
-      --muted: #556866;
-      --line: #2a3c3a;
+      --panel: #f8f9fa;
+      --surface: #f1f3f4;
+      --surface-alt: #e3e5e8;
+      --border: #bdc1c6;
+      --fg: #1f1f1f;
+      --muted: #5f6368;
+      --line: #3c4043;
       --accent: #0a6c73;
       --critical: #b3261e;
       --stroke: 1px;
@@ -539,7 +539,7 @@
   <fieldset class="segmented themes">
     <legend>Theme</legend>
     <input type="radio" name="theme" id="theme-auto" value="auto"><label for="theme-auto" title="Follow system setting">Auto</label>
-    <input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light" title="Light">Shallows<span class="sr"> (light)</span></label>
+    <input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light" title="Light">Sail<span class="sr"> (light)</span></label>
     <input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark" title="Dark">Deep<span class="sr"> (dark)</span></label>
     <input type="radio" name="theme" id="theme-contrast" value="contrast"><label for="theme-contrast" title="High contrast">Lighthouse<span class="sr"> (high contrast)</span></label>
   </fieldset>
@@ -567,13 +567,6 @@
     </section>
     <section class="menu-section" id="menu-export">
       <h2>Export</h2>
-      <div class="option for-mermaid">
-        <span id="label-palette">Colors</span>
-        <div class="segmented" role="radiogroup" aria-labelledby="label-palette">
-        <input type="radio" name="export-palette" id="export-palette-sea" value="sea"><label for="export-palette-sea">Sea</label>
-        <input type="radio" name="export-palette" id="export-palette-neutral" value="neutral"><label for="export-palette-neutral">Neutral</label>
-        </div>
-      </div>
       <div class="option for-mermaid">
         <span id="label-mode">Mode</span>
         <div class="segmented" role="radiogroup" aria-labelledby="label-mode">

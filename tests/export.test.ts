@@ -7,7 +7,7 @@ const SOURCE =
 test('exports bake in colors and fonts, and carry no links or remote images', async () => {
   const { svg, width, height } = exportSvg(SOURCE, DEFAULT_EXPORT);
   expect(svg).not.toMatch(/var\(--pele-(?!series)/);
-  expect(svg).toContain('#0a6c73');
+  expect(svg).toContain('#2f5f9e');
   expect(svg).toContain('Arial');
   expect(svg).not.toMatch(/<a[\s>]/);
   expect(svg).not.toContain('<image');
@@ -17,8 +17,8 @@ test('exports bake in colors and fonts, and carry no links or remote images', as
   expect(svg).not.toContain('<rect width="100%"');
 });
 
-test('neutral, dark and solid change the colors and add a background', async () => {
-  const { svg } = exportSvg(SOURCE, { palette: 'neutral', mode: 'dark', background: 'solid' });
+test('dark and solid change the colors and add a background', async () => {
+  const { svg } = exportSvg(SOURCE, { mode: 'dark', background: 'solid' });
   expect(svg).toContain('#8ab4f8');
   expect(svg).toContain('<rect width="100%" height="100%" fill="#1e1e1e"/>');
 });

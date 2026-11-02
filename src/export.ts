@@ -8,73 +8,45 @@ import { IconTracker, omitForFile } from './omitted';
 const FONT = 'Arial, Helvetica, sans-serif';
 const FONT_MONO = '"Courier New", Courier, monospace';
 
-export type Palette = 'sea' | 'neutral';
 export type Mode = 'light' | 'dark';
 export type Background = 'clear' | 'solid';
 
 export interface ExportOptions {
-  palette: Palette;
   mode: Mode;
   background: Background;
 }
 
-export const DEFAULT_EXPORT: ExportOptions = { palette: 'sea', mode: 'light', background: 'clear' };
+export const DEFAULT_EXPORT: ExportOptions = { mode: 'light', background: 'clear' };
 
 type Colors = Record<
   'bg' | 'fg' | 'muted' | 'line' | 'surface' | 'surface-alt' | 'border' | 'accent' | 'critical',
   string
 >;
 
-const PALETTES: Record<Palette, Record<Mode, Colors>> = {
-  // The Shallows and Deep editor themes, on white and on deep water.
-  sea: {
-    light: {
-      bg: '#ffffff',
-      fg: '#132321',
-      muted: '#556866',
-      line: '#2a3c3a',
-      surface: '#e2eae9',
-      'surface-alt': '#d3dfdd',
-      border: '#b7c7c5',
-      accent: '#0a6c73',
-      critical: '#b3261e',
-    },
-    dark: {
-      bg: '#0e1416',
-      fg: '#d7e3e1',
-      muted: '#8fa2a0',
-      line: '#b6c7c5',
-      surface: '#1b272a',
-      'surface-alt': '#243439',
-      border: '#34474c',
-      accent: '#5ec2c3',
-      critical: '#f28b82',
-    },
+// Plain greys with a quiet blue accent, for formal documents. The light greys are Sail's too
+// (src/tokens.css), so a light export looks like the editor apart from the accent.
+const COLORS: Record<Mode, Colors> = {
+  light: {
+    bg: '#ffffff',
+    fg: '#1f1f1f',
+    muted: '#5f6368',
+    line: '#3c4043',
+    surface: '#f1f3f4',
+    'surface-alt': '#e3e5e8',
+    border: '#bdc1c6',
+    accent: '#2f5f9e',
+    critical: '#b3261e',
   },
-  // Plain greys with a quiet blue accent, for formal documents.
-  neutral: {
-    light: {
-      bg: '#ffffff',
-      fg: '#1f1f1f',
-      muted: '#5f6368',
-      line: '#3c4043',
-      surface: '#f1f3f4',
-      'surface-alt': '#e3e5e8',
-      border: '#bdc1c6',
-      accent: '#2f5f9e',
-      critical: '#b3261e',
-    },
-    dark: {
-      bg: '#1e1e1e',
-      fg: '#e8eaed',
-      muted: '#9aa0a6',
-      line: '#d0d3d6',
-      surface: '#2b2c2e',
-      'surface-alt': '#37383b',
-      border: '#5f6368',
-      accent: '#8ab4f8',
-      critical: '#f28b82',
-    },
+  dark: {
+    bg: '#1e1e1e',
+    fg: '#e8eaed',
+    muted: '#9aa0a6',
+    line: '#d0d3d6',
+    surface: '#2b2c2e',
+    'surface-alt': '#37383b',
+    border: '#5f6368',
+    accent: '#8ab4f8',
+    critical: '#f28b82',
   },
 };
 
@@ -99,7 +71,7 @@ export function exportSvg(source: string, options: ExportOptions): Exported {
   });
   const { svg } = omitForFile(drawn.svg, icons.take());
   const { width, height } = drawn;
-  const colors = PALETTES[options.palette][options.mode];
+  const colors = COLORS[options.mode];
   const values: Record<string, string> = { ...colors, font: FONT, 'font-mono': FONT_MONO, radius: '6px' };
   let out = svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (match, name: string) => {
     const value = values[name];

@@ -4,7 +4,6 @@ import { DEFAULT_EXPORT, type ExportOptions } from './export';
 
 const STORAGE_KEY = 'siren-export';
 const ALLOWED: { [K in keyof ExportOptions]: readonly ExportOptions[K][] } = {
-  palette: ['sea', 'neutral'],
   mode: ['light', 'dark'],
   background: ['clear', 'solid'],
 };
