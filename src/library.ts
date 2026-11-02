@@ -1,4 +1,6 @@
 import { replaceText } from './editor';
+import { documentTitle } from './markdown';
+import type { EditorMode } from './mode';
 import { TEMPLATES } from './templates';
 
 // Examples to start from, and the diagrams you worked on recently. Recent diagrams are kept only in
@@ -7,13 +9,18 @@ import { TEMPLATES } from './templates';
 
 const STORAGE_KEY = 'siren-recent';
 const MAX_ENTRIES = 8;
-const MAX_TEXT = 50_000;
+// As long as a link can carry (see hash.ts); documents can be longer than any diagram.
+const MAX_TEXT = 200_000;
 
 export interface Entry {
   id: string;
   text: string;
   at: number;
+  /** Absent in entries saved before Siren had modes, which are all diagrams. */
+  mode?: EditorMode;
 }
+
+export const modeOf = (entry: Entry): EditorMode => (entry.mode === 'markdown' ? 'markdown' : 'mermaid');
 
 /** Saved entries, keeping only well-formed ones. */
 export function parseEntries(raw: string | null): Entry[] {
@@ -29,7 +36,8 @@ export function parseEntries(raw: string | null): Entry[] {
           typeof e.text === 'string' &&
           e.text.length <= MAX_TEXT &&
           typeof e.at === 'number' &&
-          Number.isFinite(e.at),
+          Number.isFinite(e.at) &&
+          (e.mode === undefined || e.mode === 'mermaid' || e.mode === 'markdown'),
       )
       .slice(0, MAX_ENTRIES);
   } catch {
@@ -37,9 +45,13 @@ export function parseEntries(raw: string | null): Entry[] {
   }
 }
 
-/** The entries with this one first, replacing any older copy of it. */
+/** The entries with this one first, replacing any older copy of it or of its text. */
 export const upsert = (entries: Entry[], entry: Entry): Entry[] =>
-  [entry, ...entries.filter((e) => e.id !== entry.id)].slice(0, MAX_ENTRIES);
+  [
+    entry,
+    // The same text again, as when a link is opened twice, is one entry.
+    ...entries.filter((e) => e.id !== entry.id && !(e.text === entry.text && modeOf(e) === modeOf(entry))),
+  ].slice(0, MAX_ENTRIES);
 
 const TYPE_NAMES: Record<string, string> = {
   flowchart: 'Flowchart',
@@ -60,8 +72,11 @@ const TYPE_NAMES: Record<string, string> = {
   'architecture-beta': 'Architecture',
 };
 
-/** A short name for a diagram: its type, and its title or first label. */
-export function titleOf(text: string): string {
+const shorten = (text: string): string => (text.length > 40 ? `${text.slice(0, 39)}…` : text);
+
+/** A short name for a diagram (its type, and its title or first label) or a document (its heading). */
+export function titleOf(text: string, mode: EditorMode = 'mermaid'): string {
+  if (mode === 'markdown') return shorten(documentTitle(text)) || 'Untitled document';
   const lines = text
     .split('\n')
     .map((l) => l.trim())
@@ -75,7 +90,7 @@ export function titleOf(text: string): string {
     .join('\n')
     .match(/\w[[({]+"?([^\])}"\n]+?)"?[\])}]+|"([^"\n]+)"/);
   const detail = (title ?? label?.slice(1).find(Boolean) ?? '').trim();
-  const short = detail.length > 40 ? `${detail.slice(0, 39)}…` : detail;
+  const short = shorten(detail);
   return short ? `${type} · ${short}` : type;
 }
 
@@ -117,11 +132,19 @@ export interface Library {
   saved(text: string): void;
   /** Starts a new entry, for a diagram that arrived from a link. */
   arrived(): void;
+  /** Keeps the current text and starts a new entry, before something else is opened; says if it kept any. */
+  opening(): boolean;
+  /** The most recent text kept in this mode, which edits then update; null if there is none. */
+  resume(mode: EditorMode): string | null;
+  /** Shows the examples for the current mode. */
+  modeChanged(): void;
 }
 
+// The menu shows the examples and recent entries of the mode being edited.
 export function initLibrary(
   source: HTMLTextAreaElement,
   pristine: string[],
+  mode: () => EditorMode,
   onLoad: (message: string) => void,
 ): Library {
   const select = document.getElementById('template') as HTMLSelectElement;
@@ -131,17 +154,18 @@ export function initLibrary(
   const menu = document.getElementById('menu') as HTMLElement;
   // Untouched examples and the default diagram aren't worth keeping.
   const untouched = new Set([...pristine, ...TEMPLATES.map((t) => t.text)]);
-  let current = newId();
+  // Each mode has its own text, so each has its own entry being edited.
+  const current: Record<EditorMode, string> = { mermaid: newId(), markdown: newId() };
 
   /** Saves the text under the current entry; says whether there was anything worth saving. */
   const keep = (text: string): boolean => {
     if (untouched.has(text) || !text.trim()) return false;
-    store(upsert(load(), { id: current, text, at: Date.now() }));
+    store(upsert(load(), { id: current[mode()], text, at: Date.now(), mode: mode() }));
     return true;
   };
 
   const show = (): void => {
-    const entries = load();
+    const entries = load().filter((entry) => modeOf(entry) === mode());
     const now = Date.now();
     list.replaceChildren(
       ...entries.map((entry) => {
@@ -149,16 +173,16 @@ export function initLibrary(
         const button = document.createElement('button');
         button.type = 'button';
         const name = document.createElement('span');
-        name.textContent = titleOf(entry.text);
+        name.textContent = titleOf(entry.text, mode());
         const time = document.createElement('time');
         time.dateTime = new Date(entry.at).toISOString();
         time.textContent = ago(entry.at, now);
         button.append(name, time);
-        if (entry.id === current) button.setAttribute('aria-current', 'true');
+        if (entry.id === current[mode()]) button.setAttribute('aria-current', 'true');
         button.addEventListener('click', () => {
-          if (entry.id === current) return;
+          if (entry.id === current[mode()]) return;
           keep(source.value);
-          current = entry.id;
+          current[mode()] = entry.id;
           replaceText(source, entry.text);
           menu.hidePopover();
         });
@@ -170,17 +194,24 @@ export function initLibrary(
     clear.hidden = entries.length === 0;
   };
 
-  for (const [i, template] of TEMPLATES.entries()) select.add(new Option(template.name, String(i)));
+  const listExamples = (): void => {
+    select.length = 1;
+    for (const [i, template] of TEMPLATES.entries()) {
+      if ((template.mode ?? 'mermaid') === mode()) select.add(new Option(template.name, String(i)));
+    }
+  };
+  listExamples();
   select.addEventListener('change', () => {
     const template = TEMPLATES[Number(select.value)];
     select.value = '';
     if (!template) return;
     const kept = keep(source.value);
-    current = newId();
+    current[mode()] = newId();
     replaceText(source, template.text);
     menu.hidePopover();
     const name = template.name.toLowerCase();
-    onLoad(`Started from the ${name} example.${kept ? ' Your previous diagram is in Recent.' : ''}`);
+    const previous = mode() === 'markdown' ? 'document' : 'diagram';
+    onLoad(`Started from the ${name} example.${kept ? ` Your previous ${previous} is in Recent.` : ''}`);
   });
   clear.addEventListener('click', () => {
     store([]);
@@ -195,7 +226,19 @@ export function initLibrary(
       keep(text);
     },
     arrived: () => {
-      current = newId();
+      current[mode()] = newId();
     },
+    opening: () => {
+      const kept = keep(source.value);
+      current[mode()] = newId();
+      return kept;
+    },
+    resume: (which) => {
+      const entry = load().find((e) => modeOf(e) === which);
+      if (!entry) return null;
+      current[which] = entry.id;
+      return entry.text;
+    },
+    modeChanged: listExamples,
   };
 }

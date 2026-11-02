@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ago, type Entry, parseEntries, titleOf, upsert } from '../src/library';
+import { ago, type Entry, modeOf, parseEntries, titleOf, upsert } from '../src/library';
 import { TEMPLATES } from '../src/templates';
 
 const entry = (id: string, at = 0): Entry => ({ id, text: `flowchart LR\n  ${id}`, at });
@@ -12,10 +12,22 @@ describe('saved entries', () => {
       { id: 'c', text: 'x', at: 'later' },
       null,
       'nope',
-      { id: 'd', text: 'x'.repeat(60_000), at: 0 },
+      { id: 'd', text: 'x'.repeat(250_000), at: 0 },
       entry('e'),
     ]);
     expect(parseEntries(raw).map((e) => e.id)).toEqual(['a', 'e']);
+  });
+
+  test('entries know their mode; older ones are diagrams', () => {
+    const raw = JSON.stringify([entry('a'), { ...entry('b'), mode: 'markdown' }, { ...entry('c'), mode: 'slides' }]);
+    expect(parseEntries(raw).map(modeOf)).toEqual(['mermaid', 'markdown']);
+  });
+
+  test('the same text is kept once', () => {
+    const first = { id: 'a', text: '# Doc', at: 1, mode: 'markdown' as const };
+    const again = { ...first, id: 'b', at: 2 };
+    expect(upsert([first], again).map((e) => e.id)).toEqual(['b']);
+    expect(upsert([first], { ...again, mode: 'mermaid' }).map((e) => e.id)).toEqual(['b', 'a']);
   });
 
   test('unreadable storage gives no entries', () => {
@@ -53,7 +65,7 @@ describe('names', () => {
   });
 
   test('every example has a name', () => {
-    for (const t of TEMPLATES) expect(titleOf(t.text)).toStartWith(t.name === 'Git graph' ? 'Git graph' : t.name);
+    for (const t of TEMPLATES) expect(titleOf(t.text, t.mode)).toStartWith(t.name);
   });
 });
 

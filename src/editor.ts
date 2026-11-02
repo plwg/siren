@@ -12,7 +12,8 @@ export interface Editor {
   setErrorLine(line: number | null): void;
 }
 
-// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs.
+// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs. Into a diagram it is pasted
+// without its fences; in a Markdown document the fences are what make it a diagram, so they stay.
 const FENCED = /^\s*(`{3,}|~{3,})[ \t]*mermaid[^\n]*\n([\s\S]*?)\n?[ \t]*\1[ \t]*\s*$/i;
 
 /** Inserts text at the cursor as if typed, so it can be undone. */
@@ -34,7 +35,7 @@ export function replaceText(textarea: HTMLTextAreaElement, text: string): void {
   textarea.scrollTop = 0;
 }
 
-export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement): Editor {
+export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement, stripFences: () => boolean): Editor {
   const container = backdrop.parentElement as HTMLElement;
   let errorLine: number | null = null;
 
@@ -60,7 +61,7 @@ export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement)
   textarea.addEventListener('paste', (event) => {
     const pasted = event.clipboardData?.getData('text/plain') ?? '';
     const fenced = pasted.match(FENCED);
-    if (!fenced) return;
+    if (!fenced || !stripFences()) return;
     event.preventDefault();
     insertText(textarea, fenced[2] ?? '');
   });

@@ -1,11 +1,12 @@
 import { deflateSync, Inflate, strFromU8, strToU8 } from 'fflate';
+import type { EditorMode } from './mode';
 
 // The diagram lives in the URL after `#`, so a link carries it anywhere and no server sees it.
-// Links are `#d.` and the deflated UTF-8 text in base64url, a few times shorter than the text.
-// Older links hold the text uncompressed, with no prefix. `.` is not a base64url character, so
-// the two can't be confused.
+// Links are a prefix and the deflated UTF-8 text in base64url: `#d.` for a Mermaid diagram, `#m.`
+// for a Markdown document. Older links hold a diagram uncompressed, with no prefix. `.` is not a
+// base64url character, so the forms can't be confused.
 
-const PREFIX = 'd.';
+const PREFIXES: Record<EditorMode, string> = { mermaid: 'd.', markdown: 'm.' };
 
 // A crafted link could inflate to gigabytes. Pele refuses text over 50,000 characters anyway, so
 // stop well past that instead of exhausting memory.
@@ -41,18 +42,25 @@ const inflateLimited = (data: Uint8Array): Uint8Array => {
   return out;
 };
 
-/** The URL fragment, without `#`, that carries this diagram. */
-export function encodeDiagram(text: string): string {
-  return PREFIX + toBase64Url(deflateSync(strToU8(text), { level: 9 }));
+/** The URL fragment, without `#`, that carries this text. */
+export function encodeDiagram(text: string, mode: EditorMode = 'mermaid'): string {
+  return PREFIXES[mode] + toBase64Url(deflateSync(strToU8(text), { level: 9 }));
 }
 
-/** The diagram in a URL fragment (without `#`), or null if it holds none that can be read. */
-export function decodeDiagram(fragment: string): string | null {
+/** The text in a URL fragment (without `#`) and its mode, or null if it holds none that can be read. */
+export function decodeLink(fragment: string): { text: string; mode: EditorMode } | null {
   if (!fragment) return null;
   try {
-    if (fragment.startsWith(PREFIX)) return strFromU8(inflateLimited(fromBase64Url(fragment.slice(PREFIX.length))));
-    return new TextDecoder('utf-8', { fatal: true }).decode(fromBase64Url(fragment));
+    for (const [mode, prefix] of Object.entries(PREFIXES) as [EditorMode, string][]) {
+      if (fragment.startsWith(prefix)) {
+        return { text: strFromU8(inflateLimited(fromBase64Url(fragment.slice(prefix.length)))), mode };
+      }
+    }
+    return { text: new TextDecoder('utf-8', { fatal: true }).decode(fromBase64Url(fragment)), mode: 'mermaid' };
   } catch {
     return null;
   }
 }
+
+/** The text in a URL fragment (without `#`), whichever its mode, or null. */
+export const decodeDiagram = (fragment: string): string | null => decodeLink(fragment)?.text ?? null;
