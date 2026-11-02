@@ -40,7 +40,7 @@ The menu shows what suits the mode.
   - **PDF** opens the browser's print dialog (choose Save as PDF): only the document, in light colors whatever the theme, named after its first heading. Text stays selectable and diagrams stay sharp.
   - **Markdown file** downloads the text as `.md`.
 - **Diagrams** or **Documents**
-  - Start from an example: flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline and git graph; or release notes and a project plan.
+  - Start from an example of every diagram type Pele draws, from flowcharts and sequence diagrams to Wardley maps and Venn diagrams; or release notes and a project plan.
   - **Open Markdown file…** (Markdown mode) opens a `.md` file from your device. It is read in the browser and sent nowhere; the current document is kept in Recent, and Undo brings it back.
   - Recent work in the current mode, kept only in this browser.
 

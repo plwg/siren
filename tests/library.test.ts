@@ -57,6 +57,7 @@ describe('names', () => {
   test('a title wins over labels', () => {
     expect(titleOf('pie title Time spent\n  "Thinking" : 45')).toBe('Pie · Time spent');
     expect(titleOf('gantt\n  title Release plan\n  section Build')).toBe('Gantt · Release plan');
+    expect(titleOf('xychart\n  title "Diagrams drawn"')).toBe('XY chart · Diagrams drawn');
   });
 
   test('long details are shortened, and unknown types are capitalized', () => {
