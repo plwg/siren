@@ -1,5 +1,4 @@
 import { numberedLines } from './lines';
-import { isMarkdown } from './markdown';
 
 // The editor is a plain textarea, so typing, undo, selection and mobile keyboards behave as usual.
 // Behind it, a <pre> holds the same text, invisible, split into lines that carry line numbers and
@@ -13,8 +12,8 @@ export interface Editor {
   setErrorLine(line: number | null): void;
 }
 
-// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs. Into a diagram or an empty
-// editor it is pasted without its fences.
+// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs. Into a diagram it is pasted
+// without its fences; in a Markdown document the fences are what make it a diagram, so they stay.
 const FENCED = /^\s*(`{3,}|~{3,})[ \t]*mermaid[^\n]*\n([\s\S]*?)\n?[ \t]*\1[ \t]*\s*$/i;
 
 /** Inserts text at the cursor as if typed, so it can be undone. */
@@ -36,7 +35,7 @@ export function replaceText(textarea: HTMLTextAreaElement, text: string): void {
   textarea.scrollTop = 0;
 }
 
-export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement): Editor {
+export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement, stripFences: () => boolean): Editor {
   const container = backdrop.parentElement as HTMLElement;
   let errorLine: number | null = null;
 
@@ -62,10 +61,7 @@ export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement)
   textarea.addEventListener('paste', (event) => {
     const pasted = event.clipboardData?.getData('text/plain') ?? '';
     const fenced = pasted.match(FENCED);
-    if (!fenced) return;
-    // In a Markdown document the fences are what make the block a diagram, so they stay.
-    const rest = textarea.value.slice(0, textarea.selectionStart) + textarea.value.slice(textarea.selectionEnd);
-    if (isMarkdown(rest)) return;
+    if (!fenced || !stripFences()) return;
     event.preventDefault();
     insertText(textarea, fenced[2] ?? '');
   });

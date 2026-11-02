@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { deflateSync } from 'fflate';
-import { decodeDiagram, encodeDiagram } from '../src/hash';
+import { decodeDiagram, decodeLink, encodeDiagram } from '../src/hash';
 
 const SAMPLE = `flowchart TD
     A[Christmas] -->|Get money| B(Go shopping)
@@ -60,4 +60,11 @@ describe('links', () => {
     expect(fragment.length).toBeLessThan(100_000);
     expect(decodeDiagram(fragment)).toBeNull();
   });
+});
+
+test('a link carries its mode, and older links are diagrams', () => {
+  expect(decodeLink(encodeDiagram('# Notes', 'markdown'))).toEqual({ text: '# Notes', mode: 'markdown' });
+  expect(encodeDiagram('# Notes', 'markdown')).toStartWith('m.');
+  expect(decodeLink(encodeDiagram(SAMPLE))).toEqual({ text: SAMPLE, mode: 'mermaid' });
+  expect(decodeLink('m.AwA')).toEqual({ text: '', mode: 'markdown' });
 });

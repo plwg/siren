@@ -1,15 +1,6 @@
 import { expect, test } from 'bun:test';
 import { titleOf } from '../src/library';
-import { isMarkdown, renderMarkdown, safeHref } from '../src/markdown';
-
-test('text is a diagram when it starts with a diagram type, and Markdown otherwise', () => {
-  expect(isMarkdown('flowchart LR\n  A --> B')).toBe(false);
-  expect(isMarkdown('---\ntitle: Plan\n---\nsequenceDiagram')).toBe(false);
-  expect(isMarkdown('%% note\npie\n  "a": 1')).toBe(false);
-  expect(isMarkdown('# Notes\n\nSome text')).toBe(true);
-  expect(isMarkdown('Plain words')).toBe(true);
-  expect(isMarkdown('  \n')).toBe(false);
-});
+import { documentTitle, firstDiagram, renderMarkdown, safeHref } from '../src/markdown';
 
 test('Markdown renders', () => {
   const { html } = renderMarkdown('# Title\n\n*a* **b** `c`\n\n| x |\n| - |\n| 1 |\n\n- [x] done');
@@ -66,7 +57,20 @@ test('repeated diagrams find their own lines', () => {
   expect(blocks.map((b) => b.line)).toEqual([2, 9]);
 });
 
-test('a document is named by its first heading', () => {
-  expect(titleOf('Intro text\n\n## The *plan*\n')).toBe('Markdown · The plan');
-  expect(titleOf('Just a [link](https://x.org) here')).toBe('Markdown · Just a link here');
+test('a document is named by its first heading, or else its first line', () => {
+  expect(documentTitle('Intro text\n\n## The *plan*\n')).toBe('The plan');
+  expect(documentTitle('Just a [link](https://x.org) here')).toBe('Just a link here');
+  expect(titleOf('flowchart LR\n', 'markdown')).toBe('flowchart LR');
+  expect(titleOf('  \n', 'markdown')).toBe('Untitled document');
+});
+
+test("a document's first diagram can be taken out", () => {
+  expect(firstDiagram('# A\n\n```mermaid\npie\n  "a": 1\n```\n\n```mermaid\nflowchart LR\n```')).toBe('pie\n  "a": 1');
+  expect(firstDiagram('# No diagrams')).toBeNull();
+});
+
+test('text that looks like a diagram is still a document in Markdown mode', () => {
+  const { html, blocks } = renderMarkdown('flowchart LR\n  A --> B');
+  expect(blocks).toEqual([]);
+  expect(html).toContain('<p>flowchart LR');
 });

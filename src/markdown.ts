@@ -1,5 +1,4 @@
 import { Marked } from 'marked';
-import { detectType } from 'pele';
 
 // Markdown documents, which may hold ```mermaid blocks. Like diagrams, they arrive in links anyone
 // can craft, so the HTML is limited to what Markdown itself makes:
@@ -10,9 +9,6 @@ import { detectType } from 'pele';
 // - Images aren't loaded, for the same reason as in diagrams (omitted.ts): a placeholder names
 //   them instead, so a shared link can't track who views it.
 // - Each ```mermaid block becomes an empty slot that the page fills with a Pele drawing.
-
-/** Whether the text is a Markdown document rather than a Mermaid diagram. */
-export const isMarkdown = (text: string): boolean => text.trim() !== '' && detectType(text) === null;
 
 export interface Block {
   /** The diagram's Mermaid text. */
@@ -48,6 +44,17 @@ const isMermaid = (lang: string | undefined): boolean => /^mermaid\b/i.test((lan
 
 /** The line where text starting at `index` of `source` is. */
 const lineAt = (source: string, index: number): number => source.slice(0, index).split('\n').length;
+
+/** The document's name: its first heading, or else its first line, without inline markup. */
+export function documentTitle(text: string): string {
+  const lines = text.split('\n').map((l) => l.trim());
+  const heading = lines.find((l) => /^#{1,6}\s/.test(l))?.replace(/^#+\s+|\s+#+$/g, '');
+  const first = heading ?? lines.find((l) => l && l !== '---' && !l.startsWith('```')) ?? '';
+  return first.replace(/[*_`~]+|^[>\-+]\s+|\[([^\]]*)\]\([^)]*\)/g, (_m, link) => link ?? '').trim();
+}
+
+/** The first ```mermaid block's text, or null if there is none. */
+export const firstDiagram = (source: string): string | null => renderMarkdown(source).blocks[0]?.text ?? null;
 
 /** The document as HTML, with an empty slot for each Mermaid block. */
 export function renderMarkdown(source: string): Rendered {

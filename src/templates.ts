@@ -1,10 +1,14 @@
-// Starting points, one per common diagram type, and a Markdown document with a diagram in it. Short
+import type { EditorMode } from './mode';
+
+// Starting points: one per common diagram type, and Markdown documents with diagrams in them. Short
 // enough to read at a glance, and each shows the syntax it is known for. tests/templates.test.ts
 // checks that every one draws.
 
 export interface Template {
   name: string;
   text: string;
+  /** Diagrams leave it out. */
+  mode?: EditorMode;
 }
 
 export const TEMPLATES: Template[] = [
@@ -112,7 +116,8 @@ export const TEMPLATES: Template[] = [
   commit id: "release"`,
   },
   {
-    name: 'Markdown with a diagram',
+    name: 'Release notes',
+    mode: 'markdown',
     text: `# Release notes
 
 Siren draws **Markdown** too. Write prose, lists and tables, and put a diagram
@@ -132,5 +137,41 @@ flowchart LR
 | --- | --- |
 | Text | Marked |
 | Diagrams | Pele |`,
+  },
+  {
+    name: 'Project plan',
+    mode: 'markdown',
+    text: `# Project plan
+
+## Goal
+
+Ship the new **export** flow by the end of the quarter.
+
+## Schedule
+
+\`\`\`mermaid
+gantt
+  dateFormat YYYY-MM-DD
+  section Design
+    Research   :a1, 2026-01-05, 10d
+    Mockups    :a2, after a1, 7d
+  section Build
+    Export API :b1, after a2, 12d
+    Interface  :b2, after a2, 15d
+\`\`\`
+
+## Who does what
+
+\`\`\`mermaid
+sequenceDiagram
+  actor PM
+  participant Design
+  participant Eng
+  PM->>Design: Brief
+  Design->>Eng: Mockups
+  Eng-->>PM: Demo
+\`\`\`
+
+> Open questions go in the tracker, not here.`,
   },
 ];
