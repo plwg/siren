@@ -1,5 +1,6 @@
-// Starting points, one per common diagram type. Short enough to read at a glance, and each shows the
-// syntax that type is known for. tests/templates.test.ts checks that every one draws.
+// Starting points, one per common diagram type, and a Markdown document with a diagram in it. Short
+// enough to read at a glance, and each shows the syntax it is known for. tests/templates.test.ts
+// checks that every one draws.
 
 export interface Template {
   name: string;
@@ -109,5 +110,27 @@ export const TEMPLATES: Template[] = [
   checkout main
   merge feature
   commit id: "release"`,
+  },
+  {
+    name: 'Markdown with a diagram',
+    text: `# Release notes
+
+Siren draws **Markdown** too. Write prose, lists and tables, and put a diagram
+in a \`\`\`mermaid block:
+
+\`\`\`mermaid
+flowchart LR
+  draft[Draft] --> review{Review}
+  review -->|Approved| ship[Ship]
+\`\`\`
+
+- [x] Headings, *emphasis* and \`code\`
+- [x] Tables and task lists
+- [ ] Images aren't shown, so a shared link can't track who views it
+
+| Part | Drawn by |
+| --- | --- |
+| Text | Marked |
+| Diagrams | Pele |`,
   },
 ];

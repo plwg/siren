@@ -1,4 +1,5 @@
 import { replaceText } from './editor';
+import { isMarkdown } from './markdown';
 import { TEMPLATES } from './templates';
 
 // Examples to start from, and the diagrams you worked on recently. Recent diagrams are kept only in
@@ -60,8 +61,21 @@ const TYPE_NAMES: Record<string, string> = {
   'architecture-beta': 'Architecture',
 };
 
+const shorten = (text: string): string => (text.length > 40 ? `${text.slice(0, 39)}…` : text);
+
+/** A Markdown document's name: its first heading, or else its first line. */
+function documentTitle(text: string): string {
+  const lines = text.split('\n').map((l) => l.trim());
+  const heading = lines.find((l) => /^#{1,6}\s/.test(l))?.replace(/^#+\s+|\s+#+$/g, '');
+  const first = heading ?? lines.find((l) => l && l !== '---') ?? '';
+  // Inline markup reads as noise in a list of names.
+  const plain = first.replace(/[*_`~]+|^[>\-+]\s+|\[([^\]]*)\]\([^)]*\)/g, (_m, link) => link ?? '').trim();
+  return plain ? `Markdown · ${shorten(plain)}` : 'Markdown';
+}
+
 /** A short name for a diagram: its type, and its title or first label. */
 export function titleOf(text: string): string {
+  if (isMarkdown(text)) return documentTitle(text);
   const lines = text
     .split('\n')
     .map((l) => l.trim())
@@ -75,7 +89,7 @@ export function titleOf(text: string): string {
     .join('\n')
     .match(/\w[[({]+"?([^\])}"\n]+?)"?[\])}]+|"([^"\n]+)"/);
   const detail = (title ?? label?.slice(1).find(Boolean) ?? '').trim();
-  const short = detail.length > 40 ? `${detail.slice(0, 39)}…` : detail;
+  const short = shorten(detail);
   return short ? `${type} · ${short}` : type;
 }
 
@@ -179,7 +193,10 @@ export function initLibrary(
     current = newId();
     replaceText(source, template.text);
     menu.hidePopover();
-    const name = template.name.toLowerCase();
+    // Markdown is a name, so it keeps its capital.
+    const name = template.name
+      .replace(/^(?!Markdown)\w/, (c) => c.toLowerCase())
+      .replace(/ \w/g, (c) => c.toLowerCase());
     onLoad(`Started from the ${name} example.${kept ? ' Your previous diagram is in Recent.' : ''}`);
   });
   clear.addEventListener('click', () => {

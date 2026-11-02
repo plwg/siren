@@ -53,7 +53,7 @@ describe('names', () => {
   });
 
   test('every example has a name', () => {
-    for (const t of TEMPLATES) expect(titleOf(t.text)).toStartWith(t.name === 'Git graph' ? 'Git graph' : t.name);
+    for (const t of TEMPLATES) expect(titleOf(t.text)).toStartWith(t.name.startsWith('Markdown') ? 'Markdown' : t.name);
   });
 });
 

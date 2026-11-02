@@ -1,4 +1,5 @@
 import { numberedLines } from './lines';
+import { isMarkdown } from './markdown';
 
 // The editor is a plain textarea, so typing, undo, selection and mobile keyboards behave as usual.
 // Behind it, a <pre> holds the same text, invisible, split into lines that carry line numbers and
@@ -12,7 +13,8 @@ export interface Editor {
   setErrorLine(line: number | null): void;
 }
 
-// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs.
+// A pasted ```mermaid … ``` block, as copied from GitHub, chat or docs. Into a diagram or an empty
+// editor it is pasted without its fences.
 const FENCED = /^\s*(`{3,}|~{3,})[ \t]*mermaid[^\n]*\n([\s\S]*?)\n?[ \t]*\1[ \t]*\s*$/i;
 
 /** Inserts text at the cursor as if typed, so it can be undone. */
@@ -61,6 +63,9 @@ export function initEditor(textarea: HTMLTextAreaElement, backdrop: HTMLElement)
     const pasted = event.clipboardData?.getData('text/plain') ?? '';
     const fenced = pasted.match(FENCED);
     if (!fenced) return;
+    // In a Markdown document the fences are what make the block a diagram, so they stay.
+    const rest = textarea.value.slice(0, textarea.selectionStart) + textarea.value.slice(textarea.selectionEnd);
+    if (isMarkdown(rest)) return;
     event.preventDefault();
     insertText(textarea, fenced[2] ?? '');
   });

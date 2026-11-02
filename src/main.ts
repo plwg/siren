@@ -1,5 +1,6 @@
-import { mount } from 'pele';
+import { type Mounted, type MountOptions, mount } from 'pele';
 import pkg from '../package.json';
+import { type DocumentReport, type DocumentView, initDocument } from './document';
 import { initEditor } from './editor';
 import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
@@ -7,6 +8,7 @@ import { decodeDiagram, encodeDiagram } from './hash';
 import { initLayout } from './layout';
 import { initLibrary } from './library';
 import { guardLinks } from './links';
+import { isMarkdown } from './markdown';
 import { exportOptions, initMenu } from './menu';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
 import { qrCode } from './qr';
@@ -38,16 +40,14 @@ const diagram = byId('diagram');
 source.value = fromHash() ?? DEFAULT;
 const editor = initEditor(source, byId('code'));
 
-// An empty editor isn't an error: the diagram pane says how to start instead. Pele always draws
-// something, so while the editor is empty it draws a blank flowchart that stays hidden.
-const BLANK = 'flowchart LR';
+// An empty editor isn't an error: the diagram pane says how to start instead.
 const isBlank = (text: string): boolean => text.trim() === '';
 if (document.body.classList.contains('view')) {
   diagram.dataset.empty = 'This link has no diagram.';
   diagram.dataset.emptyNarrow = diagram.dataset.empty;
 } else {
-  diagram.dataset.empty = 'Type Mermaid on the left, or start from an example in the ☰ menu.';
-  diagram.dataset.emptyNarrow = 'Type Mermaid in the Code tab, or start from an example in the ☰ menu.';
+  diagram.dataset.empty = 'Type Mermaid or Markdown on the left, or start from an example in the ☰ menu.';
+  diagram.dataset.emptyNarrow = 'Type Mermaid or Markdown in the Code tab, or start from an example in the ☰ menu.';
 }
 const showBlank = (blank: boolean): void => {
   diagram.classList.toggle('blank', blank);
@@ -61,7 +61,7 @@ const showBlank = (blank: boolean): void => {
 // page (see omitted.ts), and named in a warning.
 let omitted: Omitted = { images: 0, icons: [] };
 const icons = new IconTracker();
-const mounted = mount(diagram, isBlank(source.value) ? BLANK : source.value, {
+const diagramOptions: MountOptions = {
   icons: icons.resolve,
   sanitize: (svg) => {
     const result = omitForPage(svg, icons.take());
@@ -76,20 +76,67 @@ const mounted = mount(diagram, isBlank(source.value) ? BLANK : source.value, {
     editor.setErrorLine(errorLine(source.value, e));
     setStanding(e instanceof Error ? e.message : String(e));
   },
-});
+};
+
+// A Markdown document reports its first broken diagram, marking the line in the editor.
+const reportDocument = ({ problem, omitted }: DocumentReport): void => {
+  if (problem) {
+    const line = problem.line === null ? null : errorLine(blockText(problem.line), problem.error);
+    editor.setErrorLine(line === null || problem.line === null ? null : problem.line + line - 1);
+    const message = problem.error instanceof Error ? problem.error.message : String(problem.error);
+    setStanding(`Diagram ${problem.index}: ${message}`);
+  } else {
+    editor.setErrorLine(null);
+    setStanding(describe(omitted, 'document'), 'warning');
+  }
+};
+// The source from a diagram's first line on; errorLine finds the line within it.
+const blockText = (line: number): string =>
+  source.value
+    .split('\n')
+    .slice(line - 1)
+    .join('\n');
 
 guardLinks(diagram);
+
+// The diagram pane shows a Mermaid diagram, or a Markdown document with diagrams in it. Only one
+// exists at a time; switching drops the other.
+let mounted: Mounted | null = null;
+let doc: DocumentView | null = null;
+const showDiagram = (text: string): void => {
+  if (doc) {
+    doc.destroy();
+    doc = null;
+    diagram.replaceChildren();
+  }
+  if (mounted) mounted.update(text);
+  else mounted = mount(diagram, text, diagramOptions);
+};
+const showDocument = (text: string): void => {
+  if (mounted) {
+    mounted.destroy();
+    mounted = null;
+    diagram.replaceChildren();
+  }
+  doc ??= initDocument(diagram, reportDocument);
+  doc.update(text);
+};
 
 // Draws new text, or the empty state for blank text.
 const draw = (text: string): void => {
   const blank = isBlank(text);
   showBlank(blank);
-  if (!blank) mounted.update(text);
+  if (blank) return;
+  if (isMarkdown(text)) showDocument(text);
+  else showDiagram(text);
 };
-showBlank(isBlank(source.value));
+draw(source.value);
 
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
-void document.fonts.ready.then(() => mounted.refresh());
+void document.fonts.ready.then(() => {
+  mounted?.refresh();
+  doc?.refresh();
+});
 
 // Recent diagrams: kept a moment after edits settle, if the diagram draws. Not on view pages.
 const viewing = document.body.classList.contains('view');
@@ -99,7 +146,8 @@ const saveSoon = (): void => {
   if (viewing) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    if (!mounted.error) library.saved(source.value);
+    // A document is kept even while one of its diagrams is broken: the prose is worth keeping.
+    if (doc || (mounted && !mounted.error)) library.saved(source.value);
   }, 1000);
 };
 // A diagram that arrived in a link is kept too, so it can be found again.
@@ -170,6 +218,10 @@ const action = (id: string, run: () => unknown): void =>
 const exported = async (): Promise<Exported | null> => {
   if (isBlank(source.value)) {
     flash('Nothing to export yet. Type a diagram first.', 'error');
+    return null;
+  }
+  if (isMarkdown(source.value)) {
+    flash('Exports are for Mermaid diagrams. Copy a link to share a Markdown document.', 'error');
     return null;
   }
   try {

@@ -129,11 +129,11 @@ export function omitForFile(svg: string, asked: Set<string>): { svg: string; omi
 }
 
 /** A sentence for each kind of thing left out, or null when nothing was. */
-export function describe({ images, icons }: Omitted): string | null {
+export function describe({ images, icons }: Omitted, what: 'diagram' | 'document' = 'diagram'): string | null {
   const parts: string[] = [];
   if (images) {
     parts.push(
-      `${images === 1 ? 'This diagram has an image' : `This diagram has ${images} images`}. Siren doesn't show images, so a shared link can't track who views it.`,
+      `${images === 1 ? `This ${what} has an image` : `This ${what} has ${images} images`}. Siren doesn't show images, so a shared link can't track who views it.`,
     );
   }
   if (icons.length) {

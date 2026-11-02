@@ -1,6 +1,6 @@
 # Siren
 
-Render Mermaid diagrams in the browser with [Pele](https://github.com/obsidianmd/pele).
+Render Mermaid diagrams, and Markdown documents with Mermaid diagrams in them, in the browser with [Pele](https://github.com/obsidianmd/pele).
 
 Live at https://plwg.github.io/siren/
 
@@ -21,11 +21,12 @@ Live at https://plwg.github.io/siren/
 
 - Click **Siren** in the header for a blank editor; Back returns to the previous diagram.
 - Type Mermaid on the left; the diagram renders on the right. The editor numbers lines, marks the line with an error, and strips the fences from a pasted ```` ```mermaid ```` block.
+- Or type Markdown: text that doesn't start with a Mermaid diagram type (such as `flowchart` or `sequenceDiagram`) is rendered as a GitHub-flavored Markdown document, and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. Into a document, a pasted ```` ```mermaid ```` block keeps its fences. Exports are for diagrams only.
 - On wider screens, drag the divider between the editor and the diagram to resize them (arrow keys work when it's focused; double-click resets).
 - On phones, **Code** and **Diagram** tabs show one at a time at full height; the theme switcher and credits move into the ☰ menu.
 - The diagram is saved in the URL, compressed, so a link always carries it.
 - Once the page has loaded, Siren needs no network: every diagram type, the QR code and exports are in the page, so it keeps working offline.
-- The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph) and lists your recent diagrams, kept only in this browser.
+- The ☰ menu's **Diagrams** section starts you from an example (flowchart, sequence, class, state, ER, Gantt, pie, mindmap, timeline, git graph, and a Markdown document with a diagram) and lists your recent diagrams, kept only in this browser.
 - Themes: **Shallows** (light), **Deep** (dark), **Lighthouse** (high contrast), or **Auto** to follow the system. Add `?theme=light|dark|contrast` to a link to force one.
 - The ☰ menu holds sharing and export:
   - **QR code** shows a scannable code of the view or editor link, to open the diagram on a phone; it can be downloaded as a PNG.
@@ -39,6 +40,7 @@ Anyone can craft a Siren link, so diagrams are treated as untrusted:
 
 - [Pele](https://pele.run/security) draws labels as text, drops `click` callbacks, and blocks `javascript:` and `data:` links.
 - A Content Security Policy lets only Siren's own scripts run and blocks loading anything from other sites. `bun run build` fails if the inline theme script and its hash in the policy drift apart; `bun scripts/check-csp.ts --write` updates the hash.
+- Markdown is rendered by [Marked](https://marked.js.org) with raw HTML shown as text, links kept only for `http`, `https`, `mailto` and `tel`, and images replaced by a placeholder naming them.
 - Diagram images are not loaded, so a shared link can't track who views it. Each shows as a dashed placeholder, and a warning says so. Icons (such as `fa:fa-car`) aren't bundled; the warning names them.
 - Diagram links are drawn in the accent color with underlined labels, ask before opening, and show where they really go. Exports contain no links or images.
 - Fonts are self-hosted, so viewing Siren sends nothing to a font host. The diagram itself lives after the `#` in the URL and is never sent to any server.
