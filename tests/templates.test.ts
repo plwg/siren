@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import { type DiagramType, render } from 'pele';
+import { renderMarkdown } from '../src/markdown';
 import { TEMPLATES } from '../src/templates';
 
 // Every type Pele draws except `info`, which only shows Pele's version. Keyed by Pele's own DiagramType,
@@ -39,14 +40,18 @@ const TYPES: Record<Exclude<DiagramType, 'info'>, true> = {
   eventmodeling: true,
 };
 
-for (const { name, text } of TEMPLATES) {
-  test(`the ${name} example draws`, () => {
-    expect(render(text).svg).toStartWith('<svg');
+for (const { name, text, mode } of TEMPLATES) {
+  test(`the ${name} example draws`, async () => {
+    // A document draws if its diagrams do.
+    const diagrams = mode === 'markdown' ? renderMarkdown(text).blocks.map((b) => b.text) : [text];
+    expect(diagrams.length).toBeGreaterThan(0);
+    for (const diagram of diagrams) expect(render(diagram).svg).toStartWith('<svg');
   });
 }
 
 test('every diagram type has an example', () => {
-  const drawn = new Set(TEMPLATES.map((t) => render(t.text).type));
+  const diagrams = TEMPLATES.filter((t) => t.mode !== 'markdown');
+  const drawn = new Set(diagrams.map((t) => render(t.text).type));
   expect(Object.keys(TYPES).filter((type) => !drawn.has(type as DiagramType))).toEqual([]);
 });
 
