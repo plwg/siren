@@ -1,9 +1,11 @@
-// Regenerates the README screenshots, the link-preview image and the Apple touch icon from the
+// Regenerates the README and guide screenshots, the link-preview image and the Apple touch icon from the
 // built site: `bun run screenshots`.
 // Needs Chromium for Playwright once: `bunx playwright-core install chromium`.
 
 import { chromium } from 'playwright-core';
 import { encodeDiagram } from '../src/hash';
+import type { EditorMode } from '../src/mode';
+import { TEMPLATES } from '../src/templates';
 
 const OUT = 'docs/screenshots';
 
@@ -15,10 +17,14 @@ const DIAGRAM = `flowchart TD
   build --> pages{{GitHub Pages}}
   pages --> site([plwg.github.io/siren])`;
 
-const SHOTS = [
-  { name: 'desktop-light', theme: 'light' },
-  { name: 'desktop-dark', theme: 'dark' },
-  { name: 'desktop-contrast', theme: 'contrast' },
+// Markdown mode: the project plan example, a document with a Gantt chart and a sequence diagram.
+const DOCUMENT = TEMPLATES.find((t) => t.name === 'Project plan')?.text ?? '';
+
+const SHOTS: { name: string; theme: string; text: string; mode: EditorMode; height: number }[] = [
+  { name: 'desktop-markdown', theme: 'light', text: DOCUMENT, mode: 'markdown', height: 800 },
+  { name: 'desktop-light', theme: 'light', text: DIAGRAM, mode: 'mermaid', height: 640 },
+  { name: 'desktop-dark', theme: 'dark', text: DIAGRAM, mode: 'mermaid', height: 640 },
+  { name: 'desktop-contrast', theme: 'contrast', text: DIAGRAM, mode: 'mermaid', height: 640 },
 ];
 
 const server = Bun.serve({
@@ -33,14 +39,15 @@ const server = Bun.serve({
 const browser = await chromium.launch();
 const errors: string[] = [];
 try {
-  for (const { name, theme } of SHOTS) {
-    const context = await browser.newContext({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 2 });
+  for (const { name, theme, text, mode, height } of SHOTS) {
+    if (!text) throw new Error(`No text for ${name}.`);
+    const context = await browser.newContext({ viewport: { width: 1280, height }, deviceScaleFactor: 2 });
     await context.addInitScript((t) => localStorage.setItem('siren-theme', t), theme);
     const page = await context.newPage();
     page.on('pageerror', (error) => errors.push(`${name}: ${error.message}`));
-    await page.goto(`http://localhost:${server.port}/siren/#${encodeDiagram(DIAGRAM)}`);
+    await page.goto(`http://localhost:${server.port}/siren/#${encodeDiagram(text, mode)}`);
     await page.evaluate(() => document.fonts.ready);
-    await page.locator('#diagram svg').waitFor();
+    await page.locator('#diagram svg').first().waitFor();
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${OUT}/${name}.png` });
     await context.close();
