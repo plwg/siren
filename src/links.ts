@@ -1,8 +1,22 @@
 // Diagrams can carry `click … href` links, and anyone can craft a Siren link, so a diagram's links
 // are the diagram author's, not Siren's. Before following one, show where it really goes.
 //
-// Links within a document, such as footnotes, scroll to their target instead. They never reach
-// the address bar: the part after # holds the document itself.
+// Links within a document, to headings and footnotes, scroll to their target instead, opening any
+// collapsed section it is in. They never reach the address bar: the part after # holds the
+// document itself.
+
+/** Opens the collapsed sections (<details>) around `target`, so it can be seen and scrolled to. */
+export function reveal(target: Element): void {
+  let section = target.parentElement?.closest('details');
+  while (section) {
+    section.open = true;
+    section = section.parentElement?.closest('details');
+  }
+}
+
+/** Whether `element` is drawn: not inside a collapsed section, nor hidden some other way. */
+export const drawn = (element: Element): boolean =>
+  element.checkVisibility ? element.checkVisibility() : element.getClientRects().length > 0;
 
 export function guardLinks(diagram: HTMLElement): void {
   const dialog = document.getElementById('leave') as HTMLDialogElement;
@@ -19,6 +33,7 @@ export function guardLinks(diagram: HTMLElement): void {
     if (href.startsWith('#')) {
       const target = document.getElementById(href.slice(1));
       if (event.type === 'click' && target && diagram.contains(target)) {
+        reveal(target);
         // Only the preview scrolls: scrollIntoView would move the page too.
         const offset = target.getBoundingClientRect().top - diagram.getBoundingClientRect().top;
         diagram.scrollBy({ top: offset - diagram.clientHeight / 3, behavior: 'smooth' });

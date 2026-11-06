@@ -10,6 +10,8 @@
 // On phones the panes take turns. The place is kept as a source line, and a pane that comes into
 // view opens at that line.
 
+import { drawn } from './links';
+
 export type Point = readonly [number, number];
 
 /** The y for `x` on the line through `points`, which run left to right; flat past either end. */
@@ -70,7 +72,8 @@ export function initScrollSync(
     for (const block of preview.querySelectorAll<HTMLElement>('[data-line]')) {
       const line = Number(block.dataset.line);
       const span = lines[line - 1] as HTMLElement | undefined;
-      if (!span) continue;
+      // Blocks in a collapsed section have no place in the preview.
+      if (!span || !drawn(block)) continue;
       found.push({ line, editor: span.offsetTop, preview: block.getBoundingClientRect().top - top });
     }
     return found;
