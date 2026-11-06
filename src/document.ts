@@ -1,6 +1,7 @@
 import { type Mounted, type MountOptions, mount } from 'pele';
 import { type Block, renderMarkdown } from './markdown';
 import { IconTracker, type Omitted, omitForPage } from './omitted';
+import { initToc } from './toc';
 
 // Draws a Markdown document into the page, with a Pele drawing for each ```mermaid block. Text is
 // drawn again on every edit, but a diagram whose text didn't change keeps its drawing: moving the
@@ -41,7 +42,8 @@ interface Slot {
 export function initDocument(container: HTMLElement, onReport: (report: DocumentReport) => void): DocumentView {
   const article = document.createElement('article');
   article.className = 'doc';
-  container.replaceChildren(article);
+  const toc = initToc(container, article);
+  container.replaceChildren(toc.element, article);
 
   let slots: Slot[] = [];
   let images = 0;
@@ -125,12 +127,14 @@ export function initDocument(container: HTMLElement, onReport: (report: Document
       } finally {
         drawing = false;
       }
+      toc.update();
       report();
     },
     refresh() {
       for (const slot of slots) slot.mounted.refresh();
     },
     destroy() {
+      toc.destroy();
       for (const slot of slots) slot.mounted.destroy();
       slots = [];
     },

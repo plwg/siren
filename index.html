@@ -349,6 +349,48 @@
     border: var(--stroke) dashed var(--muted);
     border-radius: 4px;
   }
+  /* The document's contents (src/toc.ts): a button that stays at the top right of the preview
+     while it scrolls, and a list of headings under it. The list opens while pointed at, or after
+     a click or Enter. */
+  .toc { position: sticky; top: 12px; z-index: 4; height: 0; margin: -12px -12px 0 0; display: flex; justify-content: flex-end; }
+  .toc[hidden] { display: none; }
+  .toc-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; color: var(--muted); background: var(--bg); box-shadow: 0 2px 8px rgb(0 0 0 / 0.08); }
+  .toc-button svg { width: 16px; height: 16px; }
+  .toc-button:hover, .toc.open .toc-button { color: var(--accent); border-color: var(--accent); }
+  /* Starts right under the button, so the pointer can move onto it without the list closing. */
+  .toc-panel { display: none; position: absolute; top: 30px; right: 0; padding-top: 6px; }
+  .toc.open .toc-panel { display: block; }
+  @media (hover: hover) { .toc:hover .toc-panel { display: block; } }
+  .toc-panel ol {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    width: min(300px, calc(100vw - 48px));
+    max-height: min(60vh, 480px);
+    overflow: auto;
+    background: var(--bg);
+    border: var(--stroke) solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+  }
+  .toc-panel button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 5px 10px 5px calc(10px + var(--level, 0) * 14px);
+    border: 0;
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    background: none;
+    font: 13px/1.35 var(--font-ui);
+    color: var(--fg);
+    overflow-wrap: anywhere;
+  }
+  .toc-panel button:hover { background: var(--surface); }
+  .toc-panel button[aria-current="true"] { color: var(--accent); font-weight: 600; border-left-color: var(--accent); }
+  /* A shared document scrolls from the top like any page, rather than being centered. */
+  body.view #diagram:has(> .doc) { display: block; }
+
   /* Footnotes: small numbered references, and the notes under a rule at the end. */
   .doc sup { line-height: 0; }
   .doc sup a { text-decoration: none; padding: 0 1px; }
@@ -498,7 +540,7 @@
       color-scheme: light;
     }
     html, body { height: auto; overflow: visible; background: #ffffff; }
-    header, .editor, .divider, footer, .edit-link, dialog, #menu { display: none !important; }
+    header, .editor, .divider, footer, .edit-link, dialog, #menu, .toc { display: none !important; }
     main { display: block; height: auto; overflow: visible; }
     #diagram { display: block !important; overflow: visible; padding: 0; }
     .doc { max-width: none; font-size: 11pt; }

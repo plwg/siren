@@ -17,6 +17,7 @@ Switch modes beside the name (in the ☰ menu on phones):
 
 - **Mermaid**: the text is one diagram. A pasted ```` ```mermaid ```` block loses its fences.
 - **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists, footnotes), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Document keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
+- A document with two or more headings gets a contents button at the top right of the preview. Point at it, or click it on a touch screen, to list the headings; the one you're reading is marked, and choosing one scrolls the preview there. From the keyboard, Tab to the button and press Enter.
 - Footnotes work as on GitHub: write `[^1]` in the text and `[^1]: The note.` anywhere in the document. Notes are numbered in the order they're referenced and listed at the end; click a number to jump to its note, and ↩ to jump back.
 
 Each mode keeps its own text: switching shows the other mode's text and changes neither. After a reload, the mode not in the link picks up what you last wrote in it. Back undoes a switch.
