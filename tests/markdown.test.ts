@@ -4,9 +4,9 @@ import { documentTitle, renderMarkdown, safeHref } from '../src/markdown';
 
 test('Markdown renders', () => {
   const { html } = renderMarkdown('# Title\n\n*a* **b** `c`\n\n| x |\n| - |\n| 1 |\n\n- [x] done');
-  expect(html).toContain('<h1>Title</h1>');
+  expect(html).toContain('<h1 data-line="1">Title</h1>');
   expect(html).toContain('<em>a</em> <strong>b</strong> <code>c</code>');
-  expect(html).toContain('<table>');
+  expect(html).toContain('<table data-line="5">');
   expect(html).toContain('type="checkbox"');
 });
 
@@ -46,8 +46,8 @@ test('mermaid blocks become slots that know their lines', () => {
     { text: 'flowchart LR\n  A --> B', line: 4 },
     { text: 'pie\n  "a": 1', line: 13 },
   ]);
-  expect(html).toContain('<div class="md-diagram" data-block="0"></div>');
-  expect(html).toContain('<div class="md-diagram" data-block="1"></div>');
+  expect(html).toContain('<div data-line="3" class="md-diagram" data-block="0"></div>');
+  expect(html).toContain('<div data-line="12" class="md-diagram" data-block="1"></div>');
   expect(html).toContain('let x;');
 });
 
@@ -67,5 +67,5 @@ test('a document is named by its first heading, or else its first line', () => {
 test('text that looks like a diagram is still a document in Markdown mode', () => {
   const { html, blocks } = renderMarkdown('flowchart LR\n  A --> B');
   expect(blocks).toEqual([]);
-  expect(html).toContain('<p>flowchart LR');
+  expect(html).toContain('<p data-line="1">flowchart LR');
 });

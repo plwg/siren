@@ -9,6 +9,9 @@ import { Marked } from 'marked';
 // - Images aren't loaded, for the same reason as in diagrams (omitted.ts): a placeholder names
 //   them instead, so a shared link can't track who views it.
 // - Each ```mermaid block becomes an empty slot that the page fills with a Pele drawing.
+//
+// Each top-level element carries `data-line`, the source line it starts on, so the editor and the
+// preview can scroll together (scrollsync.ts).
 
 export interface Block {
   /** The diagram's Mermaid text. */
@@ -92,6 +95,15 @@ export function renderMarkdown(source: string): Rendered {
     },
   });
 
-  const html = marked.parse(source) as string;
+  // Top-level tokens, one per heading, paragraph, list and so on, add up to the whole source, so
+  // counting their lines says where each starts. Each is drawn on its own to tag its element.
+  // Reference links are resolved while lexing, so drawing a token alone loses nothing.
+  let line = 1;
+  let html = '';
+  for (const token of marked.lexer(source)) {
+    const start = line + (token.raw.match(/^\n*/)?.[0].length ?? 0);
+    line += token.raw.split('\n').length - 1;
+    html += marked.parser([token]).replace(/^<([a-z][a-z0-9]*)/, `<$1 data-line="${start}"`);
+  }
   return { html, blocks, images };
 }
