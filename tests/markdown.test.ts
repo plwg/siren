@@ -69,3 +69,28 @@ test('text that looks like a diagram is still a document in Markdown mode', () =
   expect(blocks).toEqual([]);
   expect(html).toContain('<p data-line="1">flowchart LR');
 });
+
+test('footnotes are numbered, listed at the end, and linked both ways', () => {
+  const { html } = renderMarkdown(
+    'One.[^a] Two.[^b] One again.[^a]\n\n[^a]: First **note**.\n[^b]: Second.\n\n## After\n',
+  );
+  expect(html).toContain('<a id="md-fn-ref-a" href="#md-fn-a"');
+  expect(html).toContain('<a id="md-fn-ref-a-2" href="#md-fn-a"');
+  expect(html).toContain('<li id="md-fn-a">');
+  expect(html).toContain('First <strong>note</strong>.');
+  expect(html).toContain('href="#md-fn-ref-a-2"');
+  // The notes come after everything else, tagged with the line of the first note for scroll sync.
+  expect(html.indexOf('<h2 data-line="6">After</h2>')).toBeLessThan(html.indexOf('<section data-line="3"'));
+});
+
+test('footnotes stay as safe as the rest of the document', () => {
+  const evil = '[^x" onmouseover="alert(1)]';
+  const { html } = renderMarkdown(`Ref${evil}\n\n${evil}: <img src=x> [l](javascript:alert(1))\n`);
+  expect(html).not.toContain('" onmouseover');
+  expect(html).not.toContain('<img');
+  expect(html).not.toContain('javascript:');
+});
+
+test('a reference with no note stays as text', () => {
+  expect(renderMarkdown('See [^none].').html).toContain('See [^none].');
+});

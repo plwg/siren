@@ -1,4 +1,5 @@
-import { Marked } from 'marked';
+import { Marked, type Token } from 'marked';
+import markedFootnote from 'marked-footnote';
 
 // Markdown documents, which may hold ```mermaid blocks. Like diagrams, they arrive in links anyone
 // can craft, so the HTML is limited to what Markdown itself makes:
@@ -9,6 +10,8 @@ import { Marked } from 'marked';
 // - Images aren't loaded, for the same reason as in diagrams (omitted.ts): a placeholder names
 //   them instead, so a shared link can't track who views it.
 // - Each ```mermaid block becomes an empty slot that the page fills with a Pele drawing.
+// - Footnotes ([^1] and `[^1]: text`) follow GitHub's: numbered references, and the notes in a list
+//   at the end with links back. Their links stay in the page (see links.ts).
 //
 // Each top-level element carries `data-line`, the source line it starts on, so the editor and the
 // preview can scroll together (scrollsync.ts).
@@ -63,7 +66,12 @@ export function renderMarkdown(source: string): Rendered {
   // Where to look for the next block's text, so repeated diagrams find their own lines.
   let from = 0;
 
-  const marked = new Marked({
+  const marked = new Marked(
+    // Footnote ids are prefixed so they can't clash with the page's own. The back links' label is
+    // fixed: the extension would put the footnote's label in it unescaped.
+    markedFootnote({ prefixId: 'md-fn-', headingClass: 'sr', backRefLabel: 'Back to the text' }),
+  );
+  marked.use({
     gfm: true,
     async: false,
     renderer: {
@@ -98,12 +106,27 @@ export function renderMarkdown(source: string): Rendered {
   // Top-level tokens, one per heading, paragraph, list and so on, add up to the whole source, so
   // counting their lines says where each starts. Each is drawn on its own to tag its element.
   // Reference links are resolved while lexing, so drawing a token alone loses nothing.
+  //
+  // The footnote extension puts its list of notes first among the tokens, with no text of its
+  // own, and moves it to the end only in marked.parse(); here it is drawn last, at the line of
+  // the first note.
   let line = 1;
   let html = '';
+  let footnotes: Token | undefined;
+  let notesLine: number | undefined;
   for (const token of marked.lexer(source)) {
+    if (token.type === 'footnotes') {
+      footnotes = token;
+      continue;
+    }
     const start = line + (token.raw.match(/^\n*/)?.[0].length ?? 0);
     line += token.raw.split('\n').length - 1;
+    if (token.type === 'footnote') notesLine ??= start;
     html += marked.parser([token]).replace(/^<([a-z][a-z0-9]*)/, `<$1 data-line="${start}"`);
+  }
+  if (footnotes) {
+    const notes = marked.parser([footnotes]);
+    html += notesLine === undefined ? notes : notes.replace(/^<section/, `<section data-line="${notesLine}"`);
   }
   return { html, blocks, images };
 }
