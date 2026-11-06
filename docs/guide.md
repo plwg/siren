@@ -26,7 +26,7 @@ Each mode keeps its own text: switching shows the other mode's text and changes 
 
 - The diagram or document is saved in the URL after `#`, compressed, so a link always carries it. The link records the mode (`#d.` for a diagram, `#m.` for a document); older links open as diagrams.
 - Prose compresses to about six link characters per ten typed, so a long document makes a long link. Siren reads links of up to 200 KB of text, and opens Markdown files up to the same size so that every document survives a reload. Chat and email apps may cut very long links short; send the `.md` file instead.
-- Once the page has loaded, Siren needs no network: every diagram type, Markdown, the QR code and exports are in the page, so it keeps working offline.
+- Once the page has loaded, Siren needs no network: the code for the diagram you open comes first, and every other diagram type follows a moment later, so it keeps working offline.
 
 ## The ☰ menu
 

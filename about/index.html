@@ -7,7 +7,7 @@
   markup through, only Siren's own scripts may run and nothing may load from other sites.
   The hash allows the inline theme script below; `bun run build` fails if the two drift apart.
   Styles allow inline because Pele draws with style attributes; fonts allow data: because the
-  bundler embeds the self-hosted fonts in the stylesheet.
+  dev server embeds the self-hosted fonts in the stylesheet (built pages load them as files).
 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-BiUXZogPJC8eIspqV+tF6h1nqc1D404dEFeRS8InZ3g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -1,4 +1,5 @@
-import { type Mounted, type MountOptions, mount } from 'pele';
+import { type Mounted, type MountOptions, mount } from 'pele/lazy';
+import { everyLoaded, loadRest, loadTypes, missing } from './diagrams';
 import { type DocumentReport, type DocumentView, initDocument } from './document';
 import { initEditor, replaceText } from './editor';
 import { errorLine } from './errorline';
@@ -7,7 +8,7 @@ import { decodeLink, encodeDiagram } from './hash';
 import { initLayout } from './layout';
 import { initLibrary } from './library';
 import { guardLinks } from './links';
-import { documentTitle } from './markdown';
+import { documentTitle, renderMarkdown } from './markdown';
 import { exportOptions, initMenu } from './menu';
 import { type EditorMode, noun } from './mode';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
@@ -129,13 +130,28 @@ const showDocument = (text: string): void => {
   doc.update(text);
 };
 
-// Draws new text, or the empty state for blank text.
-const draw = (text: string): void => {
+// Draws new text, or the empty state for blank text. A diagram type whose code hasn't arrived is
+// fetched first (see diagrams.ts); if newer text is drawn meanwhile, this one is dropped.
+let drawing = 0;
+const draw = async (text: string): Promise<void> => {
+  const turn = ++drawing;
   const blank = isBlank(text);
+  let failed: string[] = [];
+  if (!blank && !everyLoaded()) {
+    const texts = markdown() ? renderMarkdown(text).blocks.map((block) => block.text) : [text];
+    const types = missing(texts);
+    if (types.length) failed = await loadTypes(types);
+    if (turn !== drawing) return;
+  }
   showBlank(blank);
   if (blank) return;
   if (markdown()) showDocument(text);
   else showDiagram(text);
+  // Pele would call the type unsupported; the real trouble is the connection.
+  if (failed.length)
+    setStanding(
+      `Couldn't fetch the code for ${failed.join(' and ')} diagrams. Check the connection, then edit to try again.`,
+    );
 };
 
 // Pele measures labels in the page's fonts, so draw again once the web fonts arrive.
@@ -201,7 +217,8 @@ const applyMode = (): void => {
   library.modeChanged();
 };
 applyMode();
-draw(source.value);
+// The rest of the diagram types are fetched after the first drawing, so they don't delay it.
+void draw(source.value).then(loadRest);
 
 // Shows another mode, with the text it had. Back returns to the mode before.
 const switchMode = (next: EditorMode): void => {
@@ -212,7 +229,7 @@ const switchMode = (next: EditorMode): void => {
   applyMode();
   source.value = texts[mode];
   editor.refresh();
-  draw(source.value);
+  void draw(source.value);
   history.pushState(null, '', `${location.pathname}${location.search}#${fragment()}`);
   updateEditLink();
 };
@@ -223,7 +240,7 @@ source.addEventListener('input', () => {
   saveSoon();
   clearTimeout(timer);
   timer = setTimeout(() => {
-    draw(source.value);
+    void draw(source.value);
     history.replaceState(null, '', `${location.pathname}${location.search}#${fragment()}`);
   }, 150);
 });
@@ -242,7 +259,7 @@ window.addEventListener('hashchange', () => {
     source.value = link.text;
     editor.refresh();
     saveSoon();
-    draw(link.text);
+    void draw(link.text);
   }
   updateEditLink();
 });
@@ -291,7 +308,7 @@ const exported = async (): Promise<Exported | null> => {
     return null;
   }
   try {
-    return exportSvg(source.value, exportOptions());
+    return await exportSvg(source.value, exportOptions());
   } catch {
     flash('Fix the diagram before exporting it.', 'error');
     return null;
