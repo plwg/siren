@@ -1,5 +1,4 @@
 import { type Mounted, type MountOptions, mount } from 'pele';
-import pkg from '../package.json';
 import { type DocumentReport, type DocumentView, initDocument } from './document';
 import { initEditor, replaceText } from './editor';
 import { errorLine } from './errorline';
@@ -267,8 +266,6 @@ const copy = async (text: string, label: string): Promise<void> => {
     flash(`Couldn't copy the ${label.toLowerCase()}. Copy it from the address bar instead.`, 'error');
   }
 };
-
-byId('pele-version').textContent = pkg.dependencies.pele;
 
 // Each menu action closes the menu and reports back in the header.
 const action = (id: string, run: () => unknown): void =>
