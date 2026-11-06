@@ -1,4 +1,4 @@
-import { render } from 'pele';
+import { renderAsync } from 'pele/lazy';
 import { IconTracker, omitForFile } from './omitted';
 
 // Exports are for pasting into documents and slides, so they ignore the editor theme. They are
@@ -57,12 +57,13 @@ export interface Exported {
 }
 
 /** The diagram drawn again for a document: measured in the export fonts, colors baked in. */
-export function exportSvg(source: string, options: ExportOptions): Exported {
+export async function exportSvg(source: string, options: ExportOptions): Promise<Exported> {
   // Not responsive, so the file has a fixed pixel size instead of stretching to its container.
   // No links: an exported file travels without Siren's link check. Images and missing icons get
   // the same placeholders as on screen, since a remote image would load each time it is opened.
   const icons = new IconTracker();
-  const drawn = render(source, {
+  // Fetches the diagram type's code first, if the page hasn't yet.
+  const drawn = await renderAsync(source, {
     fontFamily: FONT,
     fontFamilyMono: FONT_MONO,
     responsive: false,

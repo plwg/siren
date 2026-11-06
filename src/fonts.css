@@ -1,4 +1,5 @@
-/* Self-hosted so that viewing Siren sends nothing to a font host. Latin subsets, WOFF2 only. */
+/* Self-hosted so that viewing Siren sends nothing to a font host. Latin subsets, WOFF2 only.
+   The build moves each face into a file of its own (scripts/split-fonts.ts). */
 @font-face {
   font-family: "Instrument Sans";
   font-style: normal;

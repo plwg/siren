@@ -1,4 +1,4 @@
-import { type Mounted, type MountOptions, mount } from 'pele';
+import { type Mounted, type MountOptions, mount } from 'pele/lazy';
 import { type Block, renderMarkdown } from './markdown';
 import { IconTracker, type Omitted, omitForPage } from './omitted';
 import { initToc } from './toc';
