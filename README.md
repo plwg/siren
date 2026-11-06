@@ -12,7 +12,7 @@ Write Mermaid diagrams, or Markdown documents with diagrams in them, and see the
 - **Private and offline.** No accounts or tracking, and shared links can't load images or run scripts.
 - **Themes:** Sail (light), Deep (dark), Lighthouse (high contrast), or Auto.
 
-Rendered by [Pele](https://github.com/obsidianmd/pele) and [Marked](https://marked.js.org). See the **[guide](docs/guide.md)** for every feature and how Siren handles untrusted links.
+Rendered by [Pele](https://github.com/obsidianmd/pele), [Marked](https://marked.js.org) and [highlight.js](https://highlightjs.org). See the **[guide](docs/guide.md)** for every feature and how Siren handles untrusted links.
 
 ## Develop
 

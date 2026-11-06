@@ -19,6 +19,7 @@ Switch modes beside the name (in the ☰ menu on phones):
 - **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists, footnotes, collapsible sections), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Document keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
 - A document with two or more headings gets a contents button at the top right of the preview. Point at it, or click it on a touch screen, to list the headings; the one you're reading is marked, and choosing one scrolls the preview there. From the keyboard, Tab to the button and press Enter.
 - Footnotes work as on GitHub: write `[^1]` in the text and `[^1]: The note.` anywhere in the document. Notes are numbered in the order they're referenced and listed at the end; click a number to jump to its note, and ↩ to jump back.
+- Code blocks that name their language are highlighted in the theme's colors: ```` ```ts ````. Siren knows Bash, C, CSS, Dockerfile, Go, HTML/XML, Java, JavaScript, JSON, Markdown, Python, Rust, SQL, TOML/INI, TypeScript and YAML, and common short names such as `sh`, `js`, `ts`, `py`, `yml` and `md`. Other languages, and blocks with no language, show as plain text.
 - Link to a heading as on GitHub: `[the plan](#the-plan)` jumps to `## The plan`. The anchor is the heading in lower case, without punctuation, with spaces as hyphens; a repeated heading gets `-1`, `-2` and so on.
 - Collapsible sections work as on GitHub: `<details>` (or `<details open>`) with a `<summary>` line, and a blank line before the Markdown inside. A section you open or close stays that way as you type, and a link or contents entry pointing inside a closed one opens it. PDF exports show every section open, so they hold the whole document.
 
@@ -28,7 +29,7 @@ Each mode keeps its own text: switching shows the other mode's text and changes 
 
 - The diagram or document is saved in the URL after `#`, compressed, so a link always carries it. The link records the mode (`#d.` for a diagram, `#m.` for a document); older links open as diagrams.
 - Prose compresses to about six link characters per ten typed, so a long document makes a long link. Siren reads links of up to 200 KB of text, and opens Markdown files up to the same size so that every document survives a reload. Chat and email apps may cut very long links short; send the `.md` file instead.
-- Once the page has loaded, Siren needs no network: the code for the diagram you open comes first, and every other diagram type follows a moment later, so it keeps working offline.
+- Once the page has loaded, Siren needs no network: the code for the diagram you open comes first, and every other diagram type and the code highlighter follow a moment later, so it keeps working offline.
 
 ## The ☰ menu
 
@@ -72,7 +73,7 @@ The menu shows what suits the mode.
 Anyone can craft a Siren link, so diagrams and documents are treated as untrusted:
 
 - [Pele](https://pele.run/security) draws labels as text, drops `click` callbacks, and blocks `javascript:` and `data:` links.
-- Markdown is rendered by [Marked](https://marked.js.org), with footnotes by [marked-footnote](https://github.com/bent10/marked-extensions/tree/main/packages/footnote), with raw HTML shown as text (except `<details>` and `<summary>`, with no attribute but `open`), links kept only for `http`, `https`, `mailto` and `tel`, and images replaced by a placeholder naming them. Links to headings and footnotes stay within the page and never change the address, which holds the document.
+- Markdown is rendered by [Marked](https://marked.js.org), with footnotes by [marked-footnote](https://github.com/bent10/marked-extensions/tree/main/packages/footnote) and code highlighted by [highlight.js](https://highlightjs.org), which escapes the code it colors, with raw HTML shown as text (except `<details>` and `<summary>`, with no attribute but `open`), links kept only for `http`, `https`, `mailto` and `tel`, and images replaced by a placeholder naming them. Links to headings and footnotes stay within the page and never change the address, which holds the document.
 - A Content Security Policy lets only Siren's own scripts run and blocks loading anything from other sites. `bun run build` fails if the inline theme script and its hash in the policy drift apart; `bun scripts/check-csp.ts --write` updates the hash.
 - Images are not loaded, so a shared link can't track who views it. Each shows as a dashed placeholder, and a warning says so. Icons (such as `fa:fa-car`) aren't bundled; the warning names them.
 - Links are drawn in the accent color, ask before opening, and show where they really go. Diagram exports contain no links or images.

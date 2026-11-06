@@ -1,5 +1,6 @@
 import { Marked, type Token } from 'marked';
 import markedFootnote from 'marked-footnote';
+import { highlighter } from './highlight';
 
 // Markdown documents, which may hold ```mermaid blocks. Like diagrams, they arrive in links anyone
 // can craft, so the HTML is limited to what Markdown itself makes:
@@ -15,6 +16,8 @@ import markedFootnote from 'marked-footnote';
 // - Images aren't loaded, for the same reason as in diagrams (omitted.ts): a placeholder names
 //   them instead, so a shared link can't track who views it.
 // - Each ```mermaid block becomes an empty slot that the page fills with a Pele drawing.
+// - Other code blocks that name a language are highlighted (languages.ts) once the highlighter has
+//   arrived; its output is the code's text, escaped, in <span class="hljs-…">.
 // - Footnotes ([^1] and `[^1]: text`) follow GitHub's: numbered references, and the notes in a list
 //   at the end with links back. Their links stay in the page (see links.ts).
 //
@@ -34,6 +37,8 @@ export interface Rendered {
   blocks: Block[];
   /** Images left out. */
   images: number;
+  /** Whether a code block other than a diagram names a language, to highlight. */
+  code: boolean;
 }
 
 const escapeHtml = (text: string): string =>
@@ -125,6 +130,7 @@ export function documentTitle(text: string): string {
 export function renderMarkdown(source: string): Rendered {
   const blocks: Block[] = [];
   let images = 0;
+  let code = false;
   // Where to look for the next block's text, so repeated diagrams find their own lines.
   let from = 0;
   // Slugs used so far, and how many times: a repeated heading gets -1, -2 and so on, as on GitHub.
@@ -172,7 +178,14 @@ export function renderMarkdown(source: string): Rendered {
         return `<span class="md-omitted" title="Image not shown">${alt ? `image: ${escapeHtml(alt)}` : 'image'}</span>`;
       },
       code({ text, lang, raw }) {
-        if (!isMermaid(lang)) return false;
+        if (!isMermaid(lang)) {
+          const language = (lang ?? '').trim().split(/\s/)[0]?.toLowerCase() ?? '';
+          if (!language) return false;
+          code = true;
+          const html = highlighter()?.(text, language);
+          if (html == null) return false;
+          return `<pre><code class="hljs language-${escapeHtml(language)}">${html}\n</code></pre>\n`;
+        }
         // The diagram's text starts on the line after the opening fence.
         const at = source.indexOf(raw.trimStart(), from);
         let line: number | null = null;
@@ -211,5 +224,5 @@ export function renderMarkdown(source: string): Rendered {
     const notes = marked.parser([footnotes]);
     html += notesLine === undefined ? notes : notes.replace(/^<section/, `<section data-line="${notesLine}"`);
   }
-  return { html, blocks, images };
+  return { html, blocks, images, code };
 }

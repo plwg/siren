@@ -48,7 +48,7 @@ test('mermaid blocks become slots that know their lines', () => {
   ]);
   expect(html).toContain('<div data-line="3" class="md-diagram" data-block="0"></div>');
   expect(html).toContain('<div data-line="12" class="md-diagram" data-block="1"></div>');
-  expect(html).toContain('let x;');
+  expect(html).toContain('language-js');
 });
 
 test('repeated diagrams find their own lines', () => {
