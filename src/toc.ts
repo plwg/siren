@@ -20,8 +20,10 @@ export function outline(headings: readonly Heading[]): Heading[] {
 // A document with fewer headings than this needs no contents.
 const MIN_HEADINGS = 2;
 
+// An outline (bullets, the lower two indented) rather than plain lines, which would read as the
+// page's ☰ menu.
 const ICON =
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M5 8h8.5M5 12h8.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><circle cx="2.75" cy="3.5" r="1.25"/><circle cx="6" cy="8" r="1.25"/><circle cx="6" cy="12.5" r="1.25"/></g><path d="M5.5 3.5h8M9 8h4.5M9 12.5h4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
 export interface Toc {
   /** Goes first in the preview, before the document. */
