@@ -12,6 +12,7 @@ import { exportOptions, initMenu } from './menu';
 import { type EditorMode, noun } from './mode';
 import { describe, IconTracker, type Omitted, omitForPage } from './omitted';
 import { qrCode } from './qr';
+import { initScrollSync } from './scrollsync';
 import { initSplit } from './split';
 import { flash, setStanding } from './status';
 import { initThemes, linkTheme } from './theme';
@@ -43,6 +44,13 @@ source.value = arrived?.text ?? DEFAULT;
 let mode: EditorMode = arrived?.mode ?? 'mermaid';
 const markdown = (): boolean => mode === 'markdown';
 const editor = initEditor(source, byId('code'), () => !markdown());
+// A Markdown document scrolls with its source; a diagram pans and zooms on its own.
+const scrollSync = initScrollSync(
+  source,
+  byId('code'),
+  diagram,
+  () => markdown() && !diagram.classList.contains('blank') && !document.body.classList.contains('view'),
+);
 
 // An empty editor isn't an error: the diagram pane says how to start instead.
 const isBlank = (text: string): boolean => text.trim() === '';
@@ -76,7 +84,9 @@ const diagramOptions: MountOptions = {
 };
 
 // A Markdown document reports its first broken diagram, marking the line in the editor.
+// Diagrams change the document's height as they draw, so the panes line up again after each report.
 const reportDocument = ({ problem, omitted }: DocumentReport): void => {
+  scrollSync.realign();
   if (problem) {
     const line = problem.line === null ? null : errorLine(blockText(problem.line), problem.error);
     editor.setErrorLine(line === null || problem.line === null ? null : problem.line + line - 1);
