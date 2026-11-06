@@ -16,9 +16,11 @@ Everything Siren does, in detail. For a quick overview, see the [README](../READ
 Switch modes beside the name (in the ☰ menu on phones):
 
 - **Mermaid**: the text is one diagram. A pasted ```` ```mermaid ```` block loses its fences.
-- **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists, footnotes), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Document keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
+- **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists, footnotes, collapsible sections), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Document keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
 - A document with two or more headings gets a contents button at the top right of the preview. Point at it, or click it on a touch screen, to list the headings; the one you're reading is marked, and choosing one scrolls the preview there. From the keyboard, Tab to the button and press Enter.
 - Footnotes work as on GitHub: write `[^1]` in the text and `[^1]: The note.` anywhere in the document. Notes are numbered in the order they're referenced and listed at the end; click a number to jump to its note, and ↩ to jump back.
+- Link to a heading as on GitHub: `[the plan](#the-plan)` jumps to `## The plan`. The anchor is the heading in lower case, without punctuation, with spaces as hyphens; a repeated heading gets `-1`, `-2` and so on.
+- Collapsible sections work as on GitHub: `<details>` (or `<details open>`) with a `<summary>` line, and a blank line before the Markdown inside. A section you open or close stays that way as you type, and a link or contents entry pointing inside a closed one opens it. PDF exports show every section open, so they hold the whole document.
 
 Each mode keeps its own text: switching shows the other mode's text and changes neither. After a reload, the mode not in the link picks up what you last wrote in it. Back undoes a switch.
 
@@ -70,7 +72,7 @@ The menu shows what suits the mode.
 Anyone can craft a Siren link, so diagrams and documents are treated as untrusted:
 
 - [Pele](https://pele.run/security) draws labels as text, drops `click` callbacks, and blocks `javascript:` and `data:` links.
-- Markdown is rendered by [Marked](https://marked.js.org), with footnotes by [marked-footnote](https://github.com/bent10/marked-extensions/tree/main/packages/footnote), with raw HTML shown as text, links kept only for `http`, `https`, `mailto` and `tel`, and images replaced by a placeholder naming them. Footnote links stay within the page and never change the address, which holds the document.
+- Markdown is rendered by [Marked](https://marked.js.org), with footnotes by [marked-footnote](https://github.com/bent10/marked-extensions/tree/main/packages/footnote), with raw HTML shown as text (except `<details>` and `<summary>`, with no attribute but `open`), links kept only for `http`, `https`, `mailto` and `tel`, and images replaced by a placeholder naming them. Links to headings and footnotes stay within the page and never change the address, which holds the document.
 - A Content Security Policy lets only Siren's own scripts run and blocks loading anything from other sites. `bun run build` fails if the inline theme script and its hash in the policy drift apart; `bun scripts/check-csp.ts --write` updates the hash.
 - Images are not loaded, so a shared link can't track who views it. Each shows as a dashed placeholder, and a warning says so. Icons (such as `fa:fa-car`) aren't bundled; the warning names them.
 - Links are drawn in the accent color, ask before opening, and show where they really go. Diagram exports contain no links or images.

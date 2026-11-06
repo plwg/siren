@@ -334,6 +334,10 @@
   .doc input[type="checkbox"] { margin: 0 0.4em 0 0; accent-color: var(--accent); vertical-align: -0.1em; }
   .doc a { color: var(--accent); text-underline-offset: 2px; }
   .doc blockquote { padding: 0 1em; color: var(--muted); border-left: 3px solid var(--border); }
+  .doc details { margin: 0 0 1em; }
+  .doc summary { cursor: pointer; font-weight: 600; border-radius: 3px; }
+  .doc summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .doc details[open] > summary { margin-bottom: 0.6em; }
   .doc hr { border: 0; border-top: var(--stroke) solid var(--border); margin: 1.6em 0; }
   .doc code { font: 0.88em/1.5 var(--font-mono); font-variant-ligatures: none; background: var(--surface); border-radius: 4px; padding: 0.1em 0.35em; }
   .doc pre { overflow-x: auto; padding: 12px 14px; background: var(--panel); border: var(--stroke) solid var(--border); border-radius: var(--radius); }

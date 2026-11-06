@@ -47,6 +47,9 @@ export function initDocument(container: HTMLElement, onReport: (report: Document
 
   let slots: Slot[] = [];
   let images = 0;
+  // Whether each collapsible section was open as written, when last drawn. A section the reader
+  // opened or closed stays that way while they type, matched by its place in the document.
+  let written: boolean[] = [];
 
   const report = (): void => {
     const failed = slots.findIndex((s) => s.error !== undefined);
@@ -118,6 +121,15 @@ export function initDocument(container: HTMLElement, onReport: (report: Document
         } else next.push({ placeholder, block });
       }
       for (const unused of spare.values()) for (const slot of unused) slot.mounted.destroy();
+
+      const sections = template.content.querySelectorAll('details');
+      const before = article.querySelectorAll('details');
+      const now = [...sections].map((d) => d.open);
+      sections.forEach((section, i) => {
+        const old = before[i];
+        if (old && old.open !== written[i]) section.open = old.open;
+      });
+      written = now;
 
       article.replaceChildren(template.content);
       // New diagrams are drawn once in the page, where Pele can measure them.

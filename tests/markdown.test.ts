@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
 import { titleOf } from '../src/library';
-import { documentTitle, renderMarkdown, safeHref } from '../src/markdown';
+import { documentTitle, renderMarkdown, safeHref, sectionsOnly, slug } from '../src/markdown';
 
 test('Markdown renders', () => {
   const { html } = renderMarkdown('# Title\n\n*a* **b** `c`\n\n| x |\n| - |\n| 1 |\n\n- [x] done');
-  expect(html).toContain('<h1 data-line="1">Title</h1>');
+  expect(html).toContain('<h1 data-line="1" id="md-h-title">Title</h1>');
   expect(html).toContain('<em>a</em> <strong>b</strong> <code>c</code>');
   expect(html).toContain('<table data-line="5">');
   expect(html).toContain('type="checkbox"');
@@ -80,7 +80,9 @@ test('footnotes are numbered, listed at the end, and linked both ways', () => {
   expect(html).toContain('First <strong>note</strong>.');
   expect(html).toContain('href="#md-fn-ref-a-2"');
   // The notes come after everything else, tagged with the line of the first note for scroll sync.
-  expect(html.indexOf('<h2 data-line="6">After</h2>')).toBeLessThan(html.indexOf('<section data-line="3"'));
+  expect(html.indexOf('<h2 data-line="6" id="md-h-after">After</h2>')).toBeLessThan(
+    html.indexOf('<section data-line="3"'),
+  );
 });
 
 test('footnotes stay as safe as the rest of the document', () => {
@@ -93,4 +95,40 @@ test('footnotes stay as safe as the rest of the document', () => {
 
 test('a reference with no note stays as text', () => {
   expect(renderMarkdown('See [^none].').html).toContain('See [^none].');
+});
+
+test('headings get GitHub ids, and links to them stay in the page', () => {
+  expect(slug('The *plan*: 2026 & beyond!')).toBe('the-plan-2026--beyond');
+  expect(slug('Café_au lait 🎉')).toBe('café_au-lait-');
+  const { html } = renderMarkdown(
+    '# The `big` plan &amp; more\n\n## Notes\n\n## Notes\n\nNotes-1\n---\n\n[go](#The-big-plan--more "T") [two](#notes-1) [top](#) [é](#caf%C3%A9)',
+  );
+  expect(html).toContain('<h1 data-line="1" id="md-h-the-big-plan--more">');
+  expect(html).toContain('id="md-h-notes">');
+  expect(html).toContain('id="md-h-notes-1">');
+  // A heading whose own slug was taken by a repeat moves on, as on GitHub.
+  expect(html).toContain('id="md-h-notes-1-1">');
+  expect(html).toContain('<a href="#md-h-the-big-plan--more" title="T">go</a>');
+  expect(html).toContain('<a href="#md-h-notes-1">two</a>');
+  expect(html).toContain(' top ');
+  expect(html).toContain('<a href="#md-h-café">é</a>');
+});
+
+test('heading ids and in-page links stay safe', () => {
+  const { html } = renderMarkdown('# a" onclick="x\n\n[l](#a"onclick="x) [m](<#"><img src=x>>)');
+  expect(html).not.toContain('" onclick');
+  expect(html).not.toContain('"onclick');
+  expect(html).not.toContain('<img');
+});
+
+test('collapsible sections are kept, and nothing else of raw HTML', () => {
+  expect(sectionsOnly('<DETAILS open class="x" onclick="y"><summary style="z">Hi <b>x</b></summary>')).toBe(
+    '<details open><summary>Hi &lt;b&gt;x&lt;/b&gt;</summary>',
+  );
+  expect(sectionsOnly('<details data-open="1">')).toBe('<details>');
+  expect(sectionsOnly('<detailsx> <details-x> </details >')).toBe('&lt;detailsx&gt; &lt;details-x&gt; </details>');
+  const { html } = renderMarkdown('<details>\n<summary>More</summary>\n\nBody **text**\n\n</details>\n');
+  expect(html).toContain('<details data-line="1">\n<summary>More</summary>');
+  expect(html).toContain('<p data-line="4">Body <strong>text</strong></p>');
+  expect(html).toContain('</details>');
 });

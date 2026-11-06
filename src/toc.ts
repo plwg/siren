@@ -5,6 +5,8 @@
 // scrolls the preview to it. Like footnote links (links.ts), it never touches the address,
 // which holds the document.
 
+import { drawn, reveal } from './links';
+
 export interface Heading {
   level: number;
   text: string;
@@ -78,6 +80,7 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const go = (target: HTMLElement): void => {
+    reveal(target);
     // Only the preview scrolls: scrollIntoView would move the page too.
     const offset = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
     scroller.scrollBy({ top: offset - 16, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
@@ -91,7 +94,8 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
     const line = scroller.getBoundingClientRect().top + 64;
     let current = -1;
     targets.forEach((target, i) => {
-      if (target.getBoundingClientRect().top <= line) current = i;
+      // A heading in a collapsed section has no place on the page.
+      if (drawn(target) && target.getBoundingClientRect().top <= line) current = i;
     });
     // At the very end, the last heading is current even if it can't reach the line.
     if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) current = targets.length - 1;
