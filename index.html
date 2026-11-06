@@ -342,6 +342,18 @@
   .doc code { font: 0.88em/1.5 var(--font-mono); font-variant-ligatures: none; background: var(--surface); border-radius: 4px; padding: 0.1em 0.35em; }
   .doc pre { overflow-x: auto; padding: 12px 14px; background: var(--panel); border: var(--stroke) solid var(--border); border-radius: var(--radius); }
   .doc pre code { background: none; padding: 0; font-size: 13px; }
+  /* Highlighted code (src/languages.ts), in the theme's code colors (src/tokens.css). */
+  .doc .hljs-keyword, .doc .hljs-selector-tag, .doc .hljs-doctag, .doc .hljs-meta .hljs-keyword { color: var(--code-keyword); }
+  .doc .hljs-string, .doc .hljs-regexp, .doc .hljs-char.escape_, .doc .hljs-addition, .doc .hljs-selector-attr, .doc .hljs-selector-pseudo, .doc .hljs-meta .hljs-string { color: var(--code-string); }
+  .doc .hljs-comment, .doc .hljs-quote { color: var(--code-comment); font-style: italic; }
+  .doc .hljs-number, .doc .hljs-literal, .doc .hljs-built_in, .doc .hljs-type, .doc .hljs-symbol, .doc .hljs-bullet, .doc .hljs-link { color: var(--code-constant); }
+  .doc .hljs-title, .doc .hljs-section, .doc .hljs-name, .doc .hljs-selector-id, .doc .hljs-selector-class { color: var(--code-title); }
+  .doc .hljs-attr, .doc .hljs-attribute, .doc .hljs-property, .doc .hljs-variable, .doc .hljs-template-variable { color: var(--code-attr); }
+  .doc .hljs-meta { color: var(--code-comment); }
+  .doc .hljs-deletion { color: var(--code-deletion); }
+  .doc .hljs-emphasis { font-style: italic; }
+  .doc .hljs-strong, .doc .hljs-section { font-weight: 600; }
+  :root[data-theme="contrast"] .doc :is(.hljs-keyword, .hljs-title, .hljs-section, .hljs-name) { font-weight: 700; }
   .doc table { display: block; overflow-x: auto; border-collapse: collapse; }
   .doc th, .doc td { padding: 6px 12px; border: var(--stroke) solid var(--border); text-align: left; }
   .doc th { background: var(--panel); font-weight: 600; }
@@ -541,6 +553,13 @@
       --accent: #0a6c73;
       --critical: #b3261e;
       --stroke: 1px;
+      --code-keyword: #8434b8;
+      --code-string: #1a6a2a;
+      --code-comment: #5f6368;
+      --code-constant: #0b55b0;
+      --code-title: #9a4400;
+      --code-attr: #0a6c73;
+      --code-deletion: #b3261e;
       color-scheme: light;
     }
     html, body { height: auto; overflow: visible; background: #ffffff; }

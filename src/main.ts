@@ -5,6 +5,7 @@ import { initEditor, replaceText } from './editor';
 import { errorLine } from './errorline';
 import { type Exported, exportSvg, svgToPng } from './export';
 import { decodeLink, encodeDiagram } from './hash';
+import { highlighter, loadHighlighter } from './highlight';
 import { initLayout } from './layout';
 import { initLibrary } from './library';
 import { guardLinks } from './links';
@@ -131,16 +132,22 @@ const showDocument = (text: string): void => {
 };
 
 // Draws new text, or the empty state for blank text. A diagram type whose code hasn't arrived is
-// fetched first (see diagrams.ts); if newer text is drawn meanwhile, this one is dropped.
+// fetched first (see diagrams.ts), and so is the highlighter for a document with code in it (see
+// highlight.ts); if newer text is drawn meanwhile, this one is dropped. Code shows plain if the
+// highlighter can't be fetched.
 let drawing = 0;
 const draw = async (text: string): Promise<void> => {
   const turn = ++drawing;
   const blank = isBlank(text);
   let failed: string[] = [];
-  if (!blank && !everyLoaded()) {
-    const texts = markdown() ? renderMarkdown(text).blocks.map((block) => block.text) : [text];
-    const types = missing(texts);
-    if (types.length) failed = await loadTypes(types);
+  if (!blank && (!everyLoaded() || (markdown() && !highlighter()))) {
+    const rendered = markdown() ? renderMarkdown(text) : null;
+    const types = everyLoaded() ? [] : missing(rendered ? rendered.blocks.map((block) => block.text) : [text]);
+    const [unloaded] = await Promise.all([
+      types.length ? loadTypes(types) : [],
+      rendered?.code && !highlighter() ? loadHighlighter() : true,
+    ]);
+    failed = unloaded;
     if (turn !== drawing) return;
   }
   showBlank(blank);
@@ -217,8 +224,14 @@ const applyMode = (): void => {
   library.modeChanged();
 };
 applyMode();
-// The rest of the diagram types are fetched after the first drawing, so they don't delay it.
-void draw(source.value).then(loadRest);
+// The rest of the diagram types, and the highlighter, are fetched after the first drawing, so they
+// don't delay it.
+void draw(source.value).then(() => {
+  loadRest();
+  const fetchHighlighter = (): void => void loadHighlighter();
+  if ('requestIdleCallback' in window) requestIdleCallback(fetchHighlighter, { timeout: 2000 });
+  else setTimeout(fetchHighlighter, 200);
+});
 
 // Shows another mode, with the text it had. Back returns to the mode before.
 const switchMode = (next: EditorMode): void => {

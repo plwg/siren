@@ -20,6 +20,14 @@
   --stroke: 1px;
   --line-number: #5f6368;
   --error-band: color-mix(in srgb, #b3261e 13%, transparent);
+  /* Code in documents (highlight.js classes, styled in index.html). Each passes 4.5:1 on --panel. */
+  --code-keyword: #8434b8;
+  --code-string: #1a6a2a;
+  --code-comment: #5f6368;
+  --code-constant: #0b55b0;
+  --code-title: #9a4400;
+  --code-attr: #0a6c73;
+  --code-deletion: #b3261e;
 
   --font-ui: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -44,6 +52,13 @@
   --focus: #5ec2c3;
   --line-number: #8fa2a0;
   --error-band: color-mix(in srgb, #f28b82 18%, transparent);
+  --code-keyword: #c9a7ff;
+  --code-string: #9bd88c;
+  --code-comment: #8fa2a0;
+  --code-constant: #7fbfff;
+  --code-title: #f0b37a;
+  --code-attr: #5ec2c3;
+  --code-deletion: #f28b82;
   color-scheme: dark;
 }
 :root[data-theme="contrast"] {
@@ -64,6 +79,14 @@
   --stroke: 2px;
   --line-number: #d9d9d9;
   --error-band: color-mix(in srgb, #ff8a80 30%, transparent);
+  /* Code: the one yellow for keywords; otherwise white, told apart by weight and italics. */
+  --code-keyword: #ffd60a;
+  --code-string: #ffffff;
+  --code-comment: #d9d9d9;
+  --code-constant: #ffffff;
+  --code-title: #ffffff;
+  --code-attr: #ffffff;
+  --code-deletion: #ff8a80;
   color-scheme: dark;
 }
 
