@@ -349,6 +349,15 @@
     border: var(--stroke) dashed var(--muted);
     border-radius: 4px;
   }
+  /* Footnotes: small numbered references, and the notes under a rule at the end. */
+  .doc sup { line-height: 0; }
+  .doc sup a { text-decoration: none; padding: 0 1px; }
+  .doc .footnotes { margin-top: 2em; padding-top: 1em; border-top: var(--stroke) solid var(--border); font-size: 0.9em; color: var(--muted); }
+  .doc .footnotes ol { padding-left: 1.6em; }
+  .doc .footnotes p { margin: 0 0 0.4em; }
+  .doc [data-md-fn-backref] { text-decoration: none; }
+  /* Where a footnote link lands, marked for a moment. */
+  .doc .md-target { background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 3px; transition: background 0.6s; }
   .doc .md-diagram { display: flex; justify-content: center; overflow-x: auto; }
   .doc .md-diagram > svg { max-width: 100%; height: auto; }
 

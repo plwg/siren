@@ -1,5 +1,8 @@
 // Diagrams can carry `click … href` links, and anyone can craft a Siren link, so a diagram's links
 // are the diagram author's, not Siren's. Before following one, show where it really goes.
+//
+// Links within a document, such as footnotes, scroll to their target instead. They never reach
+// the address bar: the part after # holds the document itself.
 
 export function guardLinks(diagram: HTMLElement): void {
   const dialog = document.getElementById('leave') as HTMLDialogElement;
@@ -13,6 +16,17 @@ export function guardLinks(diagram: HTMLElement): void {
     event.preventDefault();
     const href = anchor.getAttribute('href');
     if (!href) return;
+    if (href.startsWith('#')) {
+      const target = document.getElementById(href.slice(1));
+      if (event.type === 'click' && target && diagram.contains(target)) {
+        // Only the preview scrolls: scrollIntoView would move the page too.
+        const offset = target.getBoundingClientRect().top - diagram.getBoundingClientRect().top;
+        diagram.scrollBy({ top: offset - diagram.clientHeight / 3, behavior: 'smooth' });
+        target.classList.add('md-target');
+        setTimeout(() => target.classList.remove('md-target'), 1600);
+      }
+      return;
+    }
     try {
       pending = new URL(href, location.href);
     } catch {

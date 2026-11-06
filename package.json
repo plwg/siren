@@ -18,6 +18,7 @@
     "@fontsource/jetbrains-mono": "5.3.0",
     "fflate": "0.8.3",
     "marked": "18.1.1",
+    "marked-footnote": "1.4.0",
     "pele": "1.13.0",
     "uqr": "0.1.3"
   },
