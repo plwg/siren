@@ -16,7 +16,7 @@ Everything Siren does, in detail. For a quick overview, see the [README](../READ
 Switch modes beside the name (in the ☰ menu on phones):
 
 - **Mermaid**: the text is one diagram. A pasted ```` ```mermaid ```` block loses its fences.
-- **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Preview keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
+- **Markdown**: the text is a GitHub-flavored Markdown document (headings, lists, tables, task lists), and each ```` ```mermaid ```` block in it is drawn as a diagram. A broken diagram shows its error in place, and the editor marks its line. Only diagrams that changed are drawn again, so long documents stay quick to edit. The editor and the preview scroll together, whichever you scroll; on phones, switching between Code and Document keeps your place. A pasted ```` ```mermaid ```` block keeps its fences.
 
 Each mode keeps its own text: switching shows the other mode's text and changes neither. After a reload, the mode not in the link picks up what you last wrote in it. Back undoes a switch.
 
