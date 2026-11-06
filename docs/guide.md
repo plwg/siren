@@ -20,7 +20,7 @@ Switch modes beside the name (in the ☰ menu on phones):
 - A document with two or more headings gets a contents button at the top right of the preview. Point at it, or click it on a touch screen, to list the headings; the one you're reading is marked, and choosing one scrolls the preview there. From the keyboard, Tab to the button and press Enter.
 - Footnotes work as on GitHub: write `[^1]` in the text and `[^1]: The note.` anywhere in the document. Notes are numbered in the order they're referenced and listed at the end; click a number to jump to its note, and ↩ to jump back.
 - Link to a heading as on GitHub: `[the plan](#the-plan)` jumps to `## The plan`. The anchor is the heading in lower case, without punctuation, with spaces as hyphens; a repeated heading gets `-1`, `-2` and so on.
-- Collapsible sections work as on GitHub: `<details>` (or `<details open>`) with a `<summary>` line, and a blank line before the Markdown inside. A section you open or close stays that way as you type, and a link or contents entry pointing inside a closed one opens it. PDF exports show sections as they are on screen.
+- Collapsible sections work as on GitHub: `<details>` (or `<details open>`) with a `<summary>` line, and a blank line before the Markdown inside. A section you open or close stays that way as you type, and a link or contents entry pointing inside a closed one opens it. PDF exports show every section open, so they hold the whole document.
 
 Each mode keeps its own text: switching shows the other mode's text and changes neither. After a reload, the mode not in the link picks up what you last wrote in it. Back undoes a switch.
 

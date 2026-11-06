@@ -381,12 +381,19 @@ action('print-pdf', () => {
   }
   window.print();
 });
+// Collapsed sections print open, so the PDF holds the whole document; they close again after.
 const pageTitle = document.title;
+let openedForPrint: HTMLDetailsElement[] = [];
 window.addEventListener('beforeprint', () => {
-  if (markdown()) document.title = docName();
+  if (!markdown()) return;
+  document.title = docName();
+  openedForPrint = [...document.querySelectorAll<HTMLDetailsElement>('.doc details:not([open])')];
+  for (const section of openedForPrint) section.open = true;
 });
 window.addEventListener('afterprint', () => {
   document.title = pageTitle;
+  for (const section of openedForPrint) section.open = false;
+  openedForPrint = [];
 });
 // Opens a Markdown file from this device as a new document: the one in the editor is kept in
 // Recent, and Undo brings it back. The file is read here and goes nowhere else.
