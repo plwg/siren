@@ -79,12 +79,27 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
   });
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  // The heading last chosen from the list. It stays current until the reader scrolls on, even
+  // when a heading close under it, or the end of the document, would otherwise take its place.
+  let chosen: HTMLElement | null = null;
+  // While the preview scrolls to a chosen heading, its scrolling doesn't count as the reader's.
+  let settling = 0;
+  const settle = (): void => {
+    clearTimeout(settling);
+    settling = window.setTimeout(() => {
+      settling = 0;
+    }, 150);
+  };
   const go = (target: HTMLElement): void => {
     reveal(target);
     // Only the preview scrolls: scrollIntoView would move the page too.
     const offset = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    chosen = target;
+    settle();
     scroller.scrollBy({ top: offset - 16, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
     setOpen(false);
+    markCurrent();
   };
 
   // The section being read: the last heading that has reached the top of the preview.
@@ -99,6 +114,8 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
     });
     // At the very end, the last heading is current even if it can't reach the line.
     if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) current = targets.length - 1;
+    const picked = chosen && drawn(chosen) ? targets.indexOf(chosen) : -1;
+    if (picked >= 0) current = picked;
     items.forEach((item, i) => {
       if (i === current) item.setAttribute('aria-current', 'true');
       else item.removeAttribute('aria-current');
@@ -107,6 +124,8 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
   scroller.addEventListener(
     'scroll',
     () => {
+      if (settling) settle();
+      else chosen = null;
       if (pending || element.hidden) return;
       pending = true;
       requestAnimationFrame(markCurrent);
@@ -145,6 +164,7 @@ export function initToc(scroller: HTMLElement, article: HTMLElement): Toc {
       markCurrent();
     },
     destroy() {
+      clearTimeout(settling);
       document.removeEventListener('pointerdown', outside);
     },
   };
